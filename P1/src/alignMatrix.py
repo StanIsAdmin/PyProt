@@ -20,18 +20,57 @@ class AlignMatrix:
 		self._colSeq = seqB
 		self._blosumMatrix = blosumMatrix
 		
-		self._gapPenalty = -4
-		self._alignMatrix = [[self._gapPenalty*i for i in range(len(self._colSeq)+1)]]
-		self._alignMatrix.extend([[(self._gapPenalty*j if i==0 else 0) for i in range(len(self._colSeq)+1)] for j in range(1, len(self._rowSeq)+1)])
+		self._initGapPenalty = -4
+		self._extGapPenalty = -1
+		
+		self._alignMatrix = [[self._initGapPenalty*i for i in range(len(self._colSeq)+1)]]
+		self._alignMatrix.extend([[(self._initGapPenalty*j if i==0 else 0) for i in range(len(self._colSeq)+1)] for j in range(1, len(self._rowSeq)+1)])
+		
+		self._alignedSequences = []
 		
 	def fill(self):
 		for row in range(1, len(self._rowSeq)+1):
 			for col in range(1, len(self._colSeq)+1):
-				v1 = self._alignMatrix[row-1][col] + self._gapPenalty
-				v2 = self._alignMatrix[row][col-1] + self._gapPenalty
-				v3 = self._alignMatrix[row-1][col-1] + \
+				insertScore = self._alignMatrix[row-1][col] + self._initGapPenalty
+				deleteScore = self._alignMatrix[row][col-1] + self._initGapPenalty
+				matchScore = self._alignMatrix[row-1][col-1] + \
 					self._blosumMatrix.getScore(self._rowSeq[row-1], self._colSeq[col-1])
-				self._alignMatrix[row][col] = max(v1, v2, v3)
+					
+				self._alignMatrix[row][col] = max(insertScore, deleteScore, matchScore)
+				
+	def align(self, i=None, j=None, seqA=Sequence(), seqB=Sequence()):
+		if i==None:
+			i = len(self._rowSeq)
+			j = len(self._colSeq)
+	
+		if i>0 or j>0:
+			
+			if i > 0 and j > 0 and self._alignMatrix[i][j] == \
+			self._alignMatrix[i-1][j-1] + self._blosumMatrix.getScore(self._rowSeq[i-1], self._colSeq[j-1]):
+				seqA.insert(self._rowSeq[i-1], 0)
+				seqB.insert(self._colSeq[j-1], 0)
+				self.align(i-1, j-1, seqA, seqB)
+				seqA.delete(0)
+				seqB.delete(0)
+			
+			if i > 0 and self._alignMatrix[i][j] == self._alignMatrix[i-1][j] + self._initGapPenalty:
+				seqA.insert(self._rowSeq[i-1], 0)
+				seqB.insert("|", 0)
+				self.align(i-1, j, seqA, seqB)
+				seqA.delete(0)
+				seqB.delete(0)
+				
+			if j > 0 and self._alignMatrix[i][j] == self._alignMatrix[i][j-1] + self._initGapPenalty:
+				seqA.insert("|", 0)
+				seqB.insert(self._colSeq[j-1], 0)
+				self.align(i, j-1, seqA, seqB)
+				seqA.delete(0)
+				seqB.delete(0)
+		else:
+			self._alignedSequences.append((seqA, seqB))
+			print(seqA)
+			print(seqB)
+		
 		
 		
 	def __repr__(self):
@@ -60,4 +99,5 @@ a = AlignMatrix(b, Sequence("shortGGVTTF"), Sequence("shortMGGETFA"))
 print(a)
 a.fill()
 print(a)
+a.align()
 		

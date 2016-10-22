@@ -1,10 +1,7 @@
 from copy import deepcopy as deepcopy
 
-class AminoAcid:
-	"""
-	Represents one of the twenty amino acids
-	"""
-	_nameGroups = (
+nameGroups = (
+		("none/gap", "gap", "|"),
 		("alanine", "ala", "A"),
 		("cysteine", "cys", "C"),
 		("aspartic acid", "asp", "D"),
@@ -27,15 +24,27 @@ class AminoAcid:
 		("tyrosine", "tyr", "Y"),
 		("asparagine/aspartic acid", "asx", "B"),
 		("glutamine/glutamic acid", "glx", "Z"),
-		("undetermined", "und", "X"),
+		("leucine/isoleucine", "xle", "J"),
+		("selenocysteine", "sec", "U"),
+		("pyrrolysine", "pyl", "O"),
+		("undetermined", "und", "X")
 	)
+
+class AminoAcid:
 	"""
-	Xle or J means either leucine or isoleucine
-	Sec or U refers to selenocysteine, 
-	and Pyl or O refers to pyrrolysine.
+	Represents one of the twenty amino acids
 	"""
+	#Tuple of tuples listing amino acid names
+	_nameGroups = deepcopy(nameGroups)
 	
-	_defaultNameMode = 2 #short name by default
+	#Dictionary mapping name to id
+	_nameDict = {nameGroups[id][i]:id for i in range(3) for id in range(len(nameGroups))}
+	
+	_nameModes = {"long":0, "medium":1, "short":2} #choices for name lenght
+	_defaultNameMode = "short" #short name by default
+	
+	
+	
 	
 	def __init__(self, name):
 		"""
@@ -45,62 +54,40 @@ class AminoAcid:
 				
 		if not isinstance(name, str):
 			raise TypeError("name must be a string")
-		if name=="":
-			raise ValueError("name cannot be empty")
 		
-		self._id = None
-		
-		if len(name) == 1: #short name
-			self._id = self.getIdByName(name.upper(), 2)
-		elif len(name) == 3: #medium name
-			self._id = self.getIdByName(name.lower(), 1)
-		else: #long name
-			self._id = self.getIdByName(name.lower(), 0)
-
-			
-		if self._id == None:
-			raise ValueError("could not find amino acid name '%s'"%name)
+		self._id = self.__getIdByName(name) #id of the amino acid (private)
+	
+	@staticmethod
+	def __getIdByName(name):
+		try:
+			return AminoAcid._nameDict[name] #get index of name mode
+		except:
+			raise ValueError("Could not find amino acid name {name}".format(name=name))
 			
 	@staticmethod
 	def getAllNames(nameMode=_defaultNameMode):
-		for aa in AminoAcid._nameGroups:
+		try:
+			nameMode = AminoAcid._nameModes[nameMode] #get index of name mode
+		except:
+			raise TypeError("nameMode must be 'short', 'medium' or 'long'")
+			
+		for aa in AminoAcid._nameGroups[1:]: #we exclude the gap (first item)
 			yield aa[nameMode]
-	
-	@staticmethod
-	def getIdByName(name, nameMode=_defaultNameMode):
-		id = 0
-		for nameGroup in AminoAcid._nameGroups:
-			if name == nameGroup[nameMode]:
-				return id
-			else:
-				id += 1
-		
-		return None
 	
 	#Representation
 	def __repr__(self):
 		return self._nameGroups[self._id][self._defaultNameMode] #default name mode
 		
 	def __str__(self):
-		return self.getName()
+		return self.getName() #default name mode
 	
-	def getName(self, nameMode="short"):
-		if not isinstance(nameMode, str):
-			raise TypeError("nameMode must be a string")
+	def getName(self, nameMode=_defaultNameMode):
+		try:
+			nameMode = AminoAcid._nameModes[nameMode] #get index of name mode
+		except:
+			raise TypeError("nameMode must be 'short', 'medium' or 'long'")
 		
-		nameMode.lower()
-		
-		if nameMode == "long":
-			return self._nameGroups[self._id][0]
-		elif nameMode == "medium":
-			return self._nameGroups[self._id][1]
-		elif nameMode == "short":
-			return self._nameGroups[self._id][2]
-		else:
-			raise ValueError("accepted modes are 'long', 'medium' and 'short'")
-			
-	def getId(self):
-		return self._id
+		return self._nameGroups[self._id][nameMode]
 	
 	#Comparison	
 	def __gt__(self, other):

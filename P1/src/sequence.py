@@ -1,4 +1,5 @@
 from aminoAcid import AminoAcid
+from copy import deepcopy
 
 class Sequence:
 	"""
@@ -174,7 +175,7 @@ class Sequence:
 			stop = start + 1
 		if stop <= start:
 			raise ValueError("stop index must be strictly greater than start index")
-		del self._aaList[indexes[0], indexes[1]]
+		del self._aaList[start : stop]
 			
 		
 """					
