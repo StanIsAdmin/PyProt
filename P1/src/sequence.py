@@ -103,7 +103,7 @@ class Sequence:
 	
 	#Manipulation
 	def __getitem__(self, key):
-		return deepcopy(self._aaList[key])
+		return self._aaList[key]
 		
 	def __setitem__(self, key, value):
 		self._aaList[key] = AminoAcid(value)
