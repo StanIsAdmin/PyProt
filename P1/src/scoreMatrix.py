@@ -10,6 +10,7 @@ class ScoreMatrix:
 		self._matrix = []
 		self._aaOrder = {}
 		self._aaValues = []
+		self._negativeAsZero = False
 		
 		#If path is provided, load directly from file
 		if path != "":
@@ -61,10 +62,22 @@ class ScoreMatrix:
 	def getScore(self, aa1, aa2):
 		id1 = self._aaOrder[str(aa1)]
 		id2 = self._aaOrder[str(aa2)]
+		val = 0
 		if id1 > id2:
-			return self._matrix[id1][id2]
+			val = self._matrix[id1][id2]
 		else:
-			return self._matrix[id2][id1]
+			val = self._matrix[id2][id1]
+			
+		if val < 0:
+			return 0 if self._negativeAsZero else val
+		else:
+			return val
+			
+	def negativeAsZero(self, isTrue):
+		if not isinstance(isTrue, bool):
+			raise TypeError("isTrue must be a boolean")
+		
+		self._negativeAsZero = isTrue
 
 				
 		
