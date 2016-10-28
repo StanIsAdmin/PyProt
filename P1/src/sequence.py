@@ -24,7 +24,7 @@ class Sequence:
 	def __formatAAList(aminoAcids):
 		#Sequence object is deep copied
 		if isinstance(aminoAcids, Sequence):
-			return deepcopy(aminoAcids)
+			return deepcopy(aminoAcids._aaList)
 		
 		#None becomes an empty Sequence
 		elif aminoAcids is None:
@@ -93,6 +93,9 @@ class Sequence:
 	
 	#Representation
 	def __repr__(self):
+		print("-".join([aa.getName(self._nameMode) for aa in self]))
+		
+	def __str__(self):
 		return "-".join([aa.getName(self._nameMode) for aa in self])
 	
 	def changeNameMode(self, newMode):

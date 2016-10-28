@@ -1,7 +1,7 @@
 from sequence import Sequence
 from aminoAcid import AminoAcid
 
-class BlosumMatrix:
+class ScoreMatrix:
 	"""
 	Represents a scoring matrix, used to determine the score between two Amino Acids
 	"""
