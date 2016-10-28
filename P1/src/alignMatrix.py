@@ -8,7 +8,7 @@ class AlignMatrix:
 	Represents an alignment matrix, used to determine the alignment score between two sequences
 	"""
 	
-	def __init__(self, scoreMatrix, seqA, seqB):
+	def __init__(self, scoreMatrix, seqA, seqB, initGapPenalty, extGapPenalty):
 		if not (isinstance(seqA, Sequence) and isinstance(seqB, Sequence)):
 			raise TypeError("seqA and seqB must be Sequence objects")
 		if len(seqA)==0 or len(seqB)==0:
@@ -24,17 +24,18 @@ class AlignMatrix:
 		self._maxAlignRow = 0
 		self._maxAlignCol = 0
 		
-		self._initGapPenalty = -4
-		self._extGapPenalty = -1
+		self._initGapPenalty = initGapPenalty
+		self._extGapPenalty = extGapPenalty
 		
-		self._alignMatrix = [[self._initGapPenalty*i for i in range(len(self._colSeq)+1)]]
-		self._alignMatrix.extend([[(self._initGapPenalty*j if i==0 else 0) for i in range(len(self._colSeq)+1)] for j in range(1, len(self._rowSeq)+1)])
+		self._alignMatrix = [[0]]
+		self._alignMatrix[0].extend([self._initGapPenalty+self._extGapPenalty*(i-1) for i in range(1, len(self._colSeq)+1)])
+		self._alignMatrix.extend([[(self._initGapPenalty+self._extGapPenalty*(j-1) if i==0 else 0) for i in range(len(self._colSeq)+1)] for j in range(1, len(self._rowSeq)+1)])
 		
 		self._rowGapMatrix = deepcopy(self._alignMatrix)
 		self._colGapMatrix = deepcopy(self._alignMatrix)
 	
 	
-	def fill(self):
+	def __fill(self, local):
 		self._maxAlignRow = 0
 		self._maxAlignCol = 0
 		for row in range(1, len(self._rowSeq)+1):
@@ -55,10 +56,15 @@ class AlignMatrix:
 				matchScore = self._alignMatrix[row-1][col-1] + \
 					self._scoreMatrix.getScore(self._rowSeq[row-1], self._colSeq[col-1])
 					
-				self._alignMatrix[row][col] = max(insertScore, deleteScore, matchScore)
+				if local:
+					self._alignMatrix[row][col] = max(insertScore, deleteScore, matchScore, 0)
+				else:
+					self._alignMatrix[row][col] = max(insertScore, deleteScore, matchScore)
+				
 				if self._alignMatrix[row][col] > self._alignMatrix[self._maxAlignRow][self._maxAlignCol]:
 					self._maxAlignRow = row
 					self._maxAlignCol = col
+		print(self)
 	
 	
 	def __align(self, i, j, seqA, seqB):
@@ -90,13 +96,12 @@ class AlignMatrix:
 			yield Sequence(seqA), Sequence(seqB)
 			
 	def globalAlign(self):
-		self._scoreMatrix.negativeAsZero(False)
+		self.__fill(False) #Fill in global mode
 		yield from self.__align(len(self._rowSeq), len(self._colSeq), Sequence(), Sequence())
 	
 	def localAlign(self):
-		self._scoreMatrix.negativeAsZero(True)
+		self.__fill(True) #Fill in local mode
 		yield from self.__align(self._maxAlignRow, self._maxAlignCol, Sequence(), Sequence())
-		self._scoreMatrix.negativeAsZero(False)
 		
 	def __repr__(self):
 		sepSize = 5
@@ -122,10 +127,9 @@ class AlignMatrix:
 
 s = ScoreMatrix(r"..\Resources\blosum\blosum62.iij")
 print(s)
-a = AlignMatrix(s, Sequence("shortGGVTTF"), Sequence("shortMGGETFA"))
+a = AlignMatrix(s, Sequence("shortGGVTTF"), Sequence("shortMGGETFA"), -4, -1)
 print(a)
-a.fill()
-print(a)
-for seqA, seqB in a.globalAlign():
+
+for seqA, seqB in a.localAlign():
 	print(seqA, seqB, sep="\n")
 		
