@@ -11,18 +11,20 @@ class Sequence:
 		Creates a Sequence object that represents the amino acid sequence contained in aminoAcids.
 		aminoAcids can be one of the following :
 		- None, meaning the Sequence is empty (default)
-		- an AminoAcid object or a string of valid AminoAcid name
-		- a list of AminoAcid objects or strings of valid AminoAcid names
+		- an AminoAcid object
+		- a string of X AminoAcid short (uppercase) names or 1 AminoAcid name
+		- a list containing AminoAcid objects and/or strings of individual AminoAcid names
 		"""
 		
 		self._nameMode = "short" #the way in which AA names are displayed
 
 		#Format aminoAcids into a list of AminoAcid objects.
-		self._aaList = self.__formatAAList(aminoAcids)
-		
+		self._aaList = self.__formatAAList(aminoAcids) #List of amino acids
+	
+	
 	@staticmethod
 	def __formatAAList(aminoAcids):
-		#Sequence object is deep copied
+		#Sequence object's aaList is deep copied
 		if isinstance(aminoAcids, Sequence):
 			return deepcopy(aminoAcids._aaList)
 		
@@ -32,59 +34,43 @@ class Sequence:
 		
 		#A string is converted to a list
 		elif isinstance(aminoAcids, str):
-			if aminoAcids[0:5] == "short": #Multiple Amino Acids in short name mode
-				return [AminoAcid(aa) for aa in aminoAcids[5:]]
+			if aminoAcids.isupper(): #Multiple Amino Acids in short name mode
+				return [AminoAcid(aa) for aa in aminoAcids]
 			else: #A single Amino Acid with any name mode
 				return [AminoAcid(aminoAcids)]
 		
-		#An AminoAcid is put within a list
+		#An AminoAcid is copied (from name) and put within a list
 		elif isinstance(aminoAcids, AminoAcid):
-			return [deepcopy(aminoAcids)]
+			return [AminoAcid(aminoAcids)] #Copy constructor
 		
-		#Only lists are allowed besides the previous
-		elif not isinstance(aminoAcids, list):
-			raise TypeError("aminoAcids must be a list, an AminoAcid object or a string")
+		#A list is copied with all of its items converted to AminoAcid objects
+		elif isinstance(aminoAcids, list):
+			return [AminoAcid(aa) for aa in aminoAcids]
 		
-		aaCopy = None
-		formattedAAList = []
-		for aa in aminoAcids:
-			if isinstance(aa, AminoAcid):
-				aaCopy = deepcopy(aa) #create a copy of the object
-			else:
-				aaCopy = AminoAcid(aa) #create the object from its name
-			formattedAAList.append(aaCopy)
-			
-		return formattedAAList
+		#No more supported types
+		else:
+			raise TypeError("aminoAcids must be a Sequence, list, AminoAcid object, string or None")
 	
-	#Size
+	#Size and comparison
 	def __len__(self):
 		return len(self._aaList)
+		
 	def __gt__(self, other):
-		if not isinstance(other, Sequence):
-			raise ValueError("cannot compare Sequence object with non-Sequence object")
 		return len(self) > len(other)
+		
 	def __lt__(self, other):
-		if not isinstance(other, Sequence):
-			raise ValueError("cannot compare Sequence object with non-Sequence object")
 		return len(self) < len(other)
+		
 	def __ge__(self, other):
-		if not isinstance(other, Sequence):
-			raise ValueError("cannot compare Sequence object with non-Sequence object")
 		return len(self) >= len(other)
+		
 	def __le__(self, other):
-		if not isinstance(other, Sequence):
-			raise ValueError("cannot compare Sequence object with non-Sequence object")
 		return len(self) <= len(other)
 	
-	#Comparison
 	def __eq__(self, other):
-		if not isinstance(other, Sequence):
-			raise ValueError("cannot compare Sequence object with non-Sequence object")
-		return len(self) == len(other) and all(self[i] == other[i] for i in len(self))
+		return len(self) == len(other) and all(a == b for a, b in zip(self, other))
 	
 	def __ne__(self, other):
-		if not isinstance(other, Sequence):
-			raise ValueError("cannot compare Sequence object with non-Sequence object")
 		return not self == other
 	
 	#Iteration
@@ -93,82 +79,84 @@ class Sequence:
 	
 	#Representation
 	def __repr__(self):
-		print("-".join([aa.getName(self._nameMode) for aa in self]))
+		print(str(self))
 		
 	def __str__(self):
-		return "-".join([aa.getName(self._nameMode) for aa in self])
+		return "".join([aa.getName(self._nameMode) for aa in self])
 	
 	def changeNameMode(self, newMode):
-		newMode.lower()
 		if newMode in ("long", "medium", "short"):
 			self._nameMode = newMode
 		else:
 			raise ValueError("newMode must be 'long', 'medium' or 'short'")
 	
-	#Manipulation
+	
+	#Item and slice manipulation	
 	def __getitem__(self, key):
-		return self._aaList[key]
+		if isinstance(key, slice):
+			#Return a Sequence object containing copies of the items from the slice
+			return Sequence([self._aaList[index] for index in range(*key.indices(len(self)))])
+		else:
+			try:
+				return self._aaList[key] #Return the item of index 'key'
+			except:
+				raise ValueError("key does not represent an index or slice")
 		
-	def __setitem__(self, key, value):
-		self._aaList[key] = AminoAcid(value)
+	def __setitem__(self, key, value):		
+		if isinstance(key, slice):
+			#Set value for a slice of the sequence
+			for index in range(*key.indices(len(self))): #range(start, stop, step)
+				self._aaList[index] = AminoAcid(value)
+		else:
+			try:
+				self._aaList[key] = AminoAcid(value) #Set value for one item
+			except:
+				raise ValueError("key does not represent an index or slice")
 		
 	def __delitem__(self, key):
-		del self._aaList[key]
+		if isinstance(key, slice):
+			#Delete a slice of the sequence
+			start, stop, step = key.indices(len(self))
+			del self._aaList[start:stop:step]
+		else:
+			try:
+				del self._aaList[key] #Delete one item
+			except:
+				raise ValueError("key does not represent an index or slice")
 	
-	def insert(self, sequence, index=None):
-		if index is None:
-			index = len(self)
-		#We need a formatted deep copy of sequence
-		for aa in self.__formatAAList(sequence):
+	
+	#Sequence modification
+	def insert(self, subSequence, index=0):
+		"""
+		Inserts subSequence into the Sequence at index 'index' (default is 0).
+		subSequence must be compatible with an AminoAcid list, as specified by __formatAAList.
+		"""
+		#We need a formatted sequence
+		for aa in self.__formatAAList(subSequence):
 			self._aaList.insert(index, aa)
 			index += 1
+			
+	def extend(self, subSequence):
+		"""
+		Same as calling insert at the end of the Sequence.
+		"""
+		self.insert(subSequence, len(self))
 		
-	def __contains__(self, item):
-		return self.contains(item)
+			
+	def remove(self, subSequence, startIndex=0):
+		"""
+		Removes the first occurrence of 'subSequence' in self, starting at index. Returns
+		- start index of the sub-sequence within self (if it exists)
+		- False if subSequence is not a sub-sequence of self
+		"""
+		lookupResult = self.hasSubSequence(subSequence, startIndex)
+		if isinstance(lookupResult, int):
+			del self[startIndex:startIndex+len(subSequence)]
+		
+		return lookupResult
 	
-	def contains(self, sequence, index=0):
-		"""
-		Checks if 'sequence' is a sub-sequence of self, starting at index. Returns
-		- (start, end) indexes of the sub-sequence within self (end index not included)
-		- False if sequence is not a sub-sequence of self
-		"""
-		if not isinstance(index, int) or index < 0 or index >= len(self):
-			raise ValueError("index must be a positive integer lesser than len(self)")
-		#We won't change sequence, there is no need to deep copy it
-		if not isinstance(sequence, Sequence):
-			sequence = self.__formatAAList(sequence)
 			
-		if len(self)-index < len(sequence): #sub-sequences must be smaller or equal in size
-			return False
-		
-		for i in range(index, len(self)-len(sequence)+1):
-			for j in range(len(sequence)):
-				if self[i+j] != sequence[j]:
-					break
-			else:
-				return i, i+len(sequence)
-		return False
-		
-	def remove(self, sequence, index=0):
-		"""
-		Removes the first occurrence of 'sequence' in self, starting at index. Returns
-		- (start, end) indexes of the sub-sequence within self (end index not included)
-		- False if sequence is not a sub-sequence of self
-		"""
-		if not isinstance(index, int) or index < 0 or index >= len(self):
-			raise ValueError("index must be a positive integer lesser than len(self)")
-		
-		#We won't change sequence, there is no need to deep copy it
-		if not isinstance(sequence, Sequence):
-			sequence = self.__formatAAList(sequence)
-			
-		indexes = self.contains(sequence, index)
-		if indexes == False:
-			raise ValueError("sequence is a sub-sequence of self after index")
-		else:
-			del self._aaList[indexes[0]:indexes[1]]
-			
-	def delete(self, start=0, stop=None):
+	def delete(self, start=0, stop=None, step=None):
 		"""
 		Deletes Amino Acids between indexes start (included) and stop (excluded).
 		If start is not specified, deletion will begin at index 0.
@@ -176,24 +164,29 @@ class Sequence:
 		"""
 		if stop is None:
 			stop = start + 1
-		if stop <= start:
-			raise ValueError("stop index must be strictly greater than start index")
-		del self._aaList[start : stop]
+		if step is None:
+			step = 1
+		del self[start:stop:step]
+	
+	
+	#Lookup
+	def __contains__(self, item):
+		return item in self._aaList
+	
+	def hasSubSequence(self, subSequence, startIndex=0):
+		"""
+		Checks if 'subSequence' is a sub-sequence of self, starting at startIndex. Returns
+		- start index of the sub-sequence within self, if it exists
+		- False if sequence is not a sub-sequence of self
+		"""
+		subLen = len(subSequence)
+		endIndex = len(self)-subLen+1
+		if endIndex < startIndex or startIndex < 0:
+			raise ValueError("subSequence does not fit in sequence after startIndex")
 			
+		for i in range(startIndex, endIndex):
+			if all(self[i+j] == subSequence[j] for j in range(subLen)):
+				return i
 		
-"""					
-l = ["lysine", "G", AminoAcid("arg")]
-s = Sequence(l)
-print(l)
-print(s)
-s.changeNameMode("long")
-print(s)
-s.insert("ALA", 3)
-print(s)
-s[0] = "ALA"
-print(s)
-del s[2]
-print(s)
-s.remove(["glycine", "ala"])
-print(s)
-"""
+		return False
+	
