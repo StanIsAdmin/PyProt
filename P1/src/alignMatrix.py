@@ -40,7 +40,7 @@ class AlignMatrix:
 		#Used for backtracking purposes
 		self._originMatrix = [["" for i in range(len(self._colSeq)+1)] for j in range(len(self._rowSeq)+1)]
 		
-		self._localAlign = False #Align mode (global if not local)
+		self._alignMode = "" #Align mode (global, semiglobal, local)
 		
 		self._maxScoreRow = 0 #Indexes of maximum value from _alignMatrix
 		self._maxScoreCol = 0
@@ -57,8 +57,12 @@ class AlignMatrix:
 		self._alignedSeqB = None
 		
 		
-	def globalAlign(self, iniGapPenalty, extGapPenalty=None):
-		self._localAlign = False
+	def globalAlign(self, iniGapPenalty, extGapPenalty=None, semiGlobal=False):
+		if semiGlobal:
+			self._alignMode = "semiglobal"
+		else:
+			self._alignMode = "global"
+			
 		self.__initialize(iniGapPenalty, extGapPenalty) #Initialize all data structures
 		print(self)
 		#Align in global mode, from the bottom right
@@ -66,7 +70,7 @@ class AlignMatrix:
 	
 	
 	def localAlign(self, iniGapPenalty, extGapPenalty=None, subOptimal=False):
-		self._localAlign = True
+		self._alignMode = "local"
 		self.__initialize(iniGapPenalty, extGapPenalty) #Initialize all data structures
 		print(self)
 		#Align in local mode, from the maximum value (optimal)
@@ -81,26 +85,33 @@ class AlignMatrix:
 	
 	
 	def __initialize(self, iniGapPenalty, extGapPenalty):
+		#Gap penalties
 		self._iniGapPenalty = iniGapPenalty
 		self._extGapPenalty = iniGapPenalty if extGapPenalty is None else extGapPenalty
 		
-		#Fill initial values (first row and column)
-		for i in range(1, max(len(self._colSeq), len(self._rowSeq))+1):
-			#Initial values are null in local alignments, products of gap penalties in global alignemnt
-			val = 0 if self._localAlign else self._iniGapPenalty + self._extGapPenalty*(i-1)
-			
-			if i <= len(self._colSeq): #First row
-				self._alignMatrix[0][i] = val
-				self._rowGapMatrix[0][i] = val 
-				self._colGapMatrix[0][i] = val
-				if not self._localAlign:
+		#Fill initial values
+		for i in range(1, max(len(self._colSeq), len(self._rowSeq))+1):	
+			#Global alignment : first line and colunm have initial scores
+			if self._alignMode== "global":
+				val = self._iniGapPenalty + self._extGapPenalty*(i-1)
+				if i <= len(self._colSeq): #First row
+					self._alignMatrix[0][i] = val
+					self._rowGapMatrix[0][i] = val 
+					self._colGapMatrix[0][i] = val
+				
+				if i <= len(self._rowSeq): #First column
+					self._alignMatrix[i][0] = val
+					self._rowGapMatrix[i][0] = val 
+					self._colGapMatrix[i][0] = val
+					
+			#Non-local alignment : first line and column have initial origins
+			if self._alignMode != "local":
+				if i <= len(self._colSeq): #First row
 					self._originMatrix[0][i] = "L"
-			if i <= len(self._rowSeq): #First column
-				self._alignMatrix[i][0] = val
-				self._rowGapMatrix[i][0] = val 
-				self._colGapMatrix[i][0] = val
-				if not self._localAlign:
+				
+				if i <= len(self._rowSeq): #First column
 					self._originMatrix[i][0] = "T"
+			
 				
 		self._alignSeqA = Sequence() #Alignment sequences
 		self._alignSeqB = Sequence()
@@ -112,7 +123,7 @@ class AlignMatrix:
 		self._maxScoreRow = 0 #Row of maximum value
 		self._maxScoreCol = 0 #Column of maximum value 
 		
-		#Initialize all matrix
+		#Fill all matrix
 		for row in range(1, len(self._rowSeq)+1):
 			for col in range(1, len(self._colSeq)+1):
 				self.__fill(row, col)
@@ -136,7 +147,7 @@ class AlignMatrix:
 			self._scoreMatrix.getScore(self._rowSeq[row-1], self._colSeq[col-1])
 			
 		maxScore = 0
-		if self._localAlign: #Local alignment
+		if self._alignMode == "local": #Local alignment
 			self._alignMatrix[row][col] = maxScore = max(insertScore, deleteScore, matchScore, 0)
 		else:	#Global alignment
 			self._alignMatrix[row][col] = maxScore = max(insertScore, deleteScore, matchScore)
@@ -180,7 +191,8 @@ class AlignMatrix:
 	def __align(self, i, j, score=0):
 		#Local alignments are complete when we reach a null score
 		#Global alignments are complete when we reach the beginning of the matrix
-		if (self._localAlign and self._alignMatrix[i][j]==0) or (not self._localAlign and i==0 and j==0):
+		if (self._alignMode == "local" and self._alignMatrix[i][j]==0) \
+		or (self._alignMode != "local" and i==0 and j==0):
 			yield Sequence(self._alignSeqA), Sequence(self._alignSeqB), score #yield copies of aligned sequences and score
 			
 			if score > self._maxAlignScore: #Best alignment is remembered for subobtimal lookup
@@ -247,7 +259,7 @@ s = ScoreMatrix(r"..\Resources\blosum\blosum62.iij")
 print(s)
 
 a = AlignMatrix(s, Sequence("ISALIGNED"), Sequence("THISLINE"))
-for seqA, seqB, score in a.globalAlign(-4):
+for seqA, seqB, score in a.globalAlign(-8, -8, True):
 	print("A : ", seqA)
 	print("B : ", seqB)
 	print("Score : ", score)
