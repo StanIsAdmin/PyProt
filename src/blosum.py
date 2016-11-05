@@ -1,8 +1,11 @@
 from sequence import Sequence
+from scoreMatrix import ScoreMatrix
 
 def createFromFasta(path):
 	sequences = Sequence.loadFasta(path)
-	for seq in sequences:
-		print(seq.getDescription())
+	
+	
+	
+	scoreMat = ScoreMatrix()
 		
 createFromFasta(r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\fasta\PDZ-sequences.fasta")

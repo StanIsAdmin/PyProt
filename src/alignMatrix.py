@@ -4,10 +4,58 @@ from aminoAcid import AminoAcid
 from copy import deepcopy
 
 class AlignedSequences:
-	def __init__(self, seqA, seqB, score):
+	def __init__(self, seqA, seqB, score, identity, gaps, alignmentType):
 		self.seqA = seqA
 		self.seqB = seqB
 		self.score = score
+		self.identity = identity
+		self.identityPercent = 100*(identity/len(seqA))
+		self.gaps = gaps
+		self.alignmentType = alignmentType
+		self.chunkSize = 80
+		
+	def __str__(self):
+		res = []
+		res.append("Alignment : " + self.alignmentType)
+		res.append("Score     : " + str(alignedSeq.score))
+		res.append("Identity  : " + str(alignedSeq.identity) + " ({0:.2f}%)".format(self.identityPercent))
+		res.append("Gaps      : " + str(alignedSeq.gaps) if alignedSeq.gaps > 0 else "None")
+		res.append("")
+		
+		if "" not in (self.seqA.getDescription(), self.seqB.getDescription()):
+			res.append("Upper Sequence : " + self.seqA.getDescription())
+			res.append("Lower Sequence : " + self.seqB.getDescription())
+			res.append("")
+		
+		listA, listB, listSep = [], [], []
+		for a, b in zip(self.seqA, self.seqB):
+			listA.append(str(a))
+			listB.append(str(b))
+			if a==b:
+				listSep.append("|")
+			elif a.isGap() or b.isGap():
+				listSep.append(" ")
+			
+			if len(listA) == self.chunkSize:
+				res.append("".join(listA))
+				res.append("".join(listSep))
+				res.append("".join(listB))
+				res.append("\n")
+				listA, listB, listSep = [], [], []
+		
+		if len(listA) > 0:
+				res.append("".join(listA))
+				res.append("".join(listSep))
+				res.append("".join(listB))
+
+		return "\n".join(res)
+	
+	def __repr__(self):
+		print(str(self))
+		
+				
+			
+			
 
 class AlignMatrix:
 	"""
@@ -188,36 +236,42 @@ class AlignMatrix:
 			
 		
 	
-	def __align(self, i, j, score=0):
+	def __align(self, i, j, score=0, identity=0, gaps=0):
 		#Local alignments are complete when we reach a null score
 		#Global alignments are complete when we reach the beginning of the matrix
 		if (self._alignMode == "local" and self._alignMatrix[i][j]==0) \
 		or (self._alignMode != "local" and i==0 and j==0):
-			yield Sequence(self._alignSeqA), Sequence(self._alignSeqB), score #yield copies of aligned sequences and score
+			yield AlignedSequences(Sequence(self._alignSeqA), Sequence(self._alignSeqB),\
+			score, identity, gaps, self._alignMode)
 			
 			if score > self._maxAlignScore: #Best alignment is remembered for subobtimal lookup
 				self._maxAlignScore = score
 				self._bestAlignPath = deepcopy(self._currentAlignPath)
 			
 		else:
-			score += self._alignMatrix[i][j]
+			score += self._alignMatrix[i][j] #TODO: check if score is sum or just last value
 			for origin in self._originMatrix[i][j]:
 				self._currentAlignPath.append((i,j))
 				
 				if origin == "T": #top
+					gaps += 1
 					self._alignSeqA.insert("gap", 0)
 					self._alignSeqB.insert(self._rowSeq[i-1], 0)
-					yield from self.__align(i-1, j, score)
+					yield from self.__align(i-1, j, score, identity, gaps)
 					
 				elif origin == "D": #diagonal
+					if self._colSeq[j-1] == self._rowSeq[i-1]:
+						identity += 1
 					self._alignSeqA.insert(self._colSeq[j-1], 0)
 					self._alignSeqB.insert(self._rowSeq[i-1], 0)
-					yield from self.__align(i-1, j-1, score)
+					yield from self.__align(i-1, j-1, score, identity, gaps)
 				
 				elif origin == "L": #left
+					gaps += 1
 					self._alignSeqA.insert(self._colSeq[j-1], 0)
 					self._alignSeqB.insert("gap", 0)
-					yield from self.__align(i, j-1, score)
+					yield from self.__align(i, j-1, score, identity, gaps)
+				
 				else:
 					raise ValueError("Origin must be T (top), D (diagonal) or L (left)")
 				
@@ -252,6 +306,7 @@ class AlignMatrix:
 			print('{a!s:<{w}}'.format(a=aa, w=sepSize), end="")
 			for value in values:
 				print('{v:<{w}}'.format(v=value, w=sepSize), end="")
+		print()
 		return ""
 		
 
@@ -259,10 +314,9 @@ s = ScoreMatrix(r"..\Resources\blosum\blosum62.iij")
 print(s)
 
 a = AlignMatrix(s, Sequence("ISALIGNED"), Sequence("THISLINE"))
-for seqA, seqB, score in a.globalAlign(-8, -8, True):
-	print("A : ", seqA)
-	print("B : ", seqB)
-	print("Score : ", score)
+for alignedSeq in a.globalAlign(-8, -8):
+	print(alignedSeq)
+	
 
 
 """

@@ -52,6 +52,7 @@ class ScoreMatrix:
 		print(" "*sepSize, end="")
 		for aa in self._aaSequence :
 			print('{a!s:<{w}}'.format(a=aa, w=sepSize), end="")
+		print()
 		
 		return ""
 	

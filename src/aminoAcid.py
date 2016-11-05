@@ -98,6 +98,9 @@ class AminoAcid:
 	
 	def __ne__(self, other):
 		return self._id != other._id
+		
+	def isGap(self):
+		return self._id == 0
 	
 	
 	#Hashing
