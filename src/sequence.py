@@ -6,7 +6,7 @@ class Sequence:
 	Represents an amino acid sequence, and accepts all operations that can be done on such a sequence
 	"""
 	
-	def __init__(self, aminoAcids=None):
+	def __init__(self, aminoAcids=None, description=""):
 		"""
 		Creates a Sequence object that represents the amino acid sequence contained in aminoAcids.
 		aminoAcids can be one of the following :
@@ -17,7 +17,7 @@ class Sequence:
 		"""
 		
 		self._nameMode = "short" #the way in which AA names are displayed
-		self._description = "" #description of the sequence
+		self._description = description #description of the sequence
 
 		#Format aminoAcids into a list of AminoAcid objects.
 		self._aaList = self.__formatAAList(aminoAcids) #List of amino acids
@@ -31,7 +31,7 @@ class Sequence:
 				if line[0] == ">":
 					i+=1
 					newSequence = Sequence()
-					newSequence._description = line[1:]
+					newSequence._description = line[1:].strip()
 					allSequences.append(newSequence)
 				else:
 					allSequences[i].extend(line.strip())
