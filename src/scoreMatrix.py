@@ -43,18 +43,17 @@ class ScoreMatrix:
 	#Representation
 	def __repr__(self):
 		sepSize = 4
-		
+		result = []
 		for values, aa in zip(self._matrix, self._aaSequence):
-			print('{a!s:<{w}}'.format(a=aa, w=sepSize), end="")
+			tempstr = '{a!s:<{w}}'.format(a=aa, w=sepSize)
 			for value in values:
-				print('{v:<{w}}'.format(v=value, w=sepSize), end="")
-			print()
-		print(" "*sepSize, end="")
+				tempstr += '{v:<{w}}'.format(v=value, w=sepSize)
+			result.append(tempstr)
+		result.append(" "*sepSize)
 		for aa in self._aaSequence :
-			print('{a!s:<{w}}'.format(a=aa, w=sepSize), end="")
-		print()
+			result.append('{a!s:<{w}}'.format(a=aa, w=sepSize))
 		
-		return ""
+		return "\n".join(result)
 	
 	#Scoring
 	def setScore(self, score, aa1, aa2):

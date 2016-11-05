@@ -14,12 +14,13 @@ class AlignedSequences:
 		self.alignmentType = alignmentType
 		self.chunkSize = 80
 		
-	def __str__(self):
+	def __repr__(self):
 		res = []
-		res.append("Alignment : " + self.alignmentType)
-		res.append("Score     : " + str(alignedSeq.score))
-		res.append("Identity  : " + str(alignedSeq.identity) + " ({0:.2f}%)".format(self.identityPercent))
-		res.append("Gaps      : " + str(alignedSeq.gaps) if alignedSeq.gaps > 0 else "None")
+		res.append("========== Alignment ==========")
+		res.append("Type     : " + self.alignmentType)
+		res.append("Score    : " + str(self.score))
+		res.append("Identity : " + str(self.identity) + " ({0:.2f}%)".format(self.identityPercent))
+		res.append("Gaps     : " + (str(self.gaps) if self.gaps > 0 else "None"))
 		res.append("")
 		
 		if "" not in (self.seqA.getDescription(), self.seqB.getDescription()):
@@ -35,6 +36,9 @@ class AlignedSequences:
 				listSep.append("|")
 			elif a.isGap() or b.isGap():
 				listSep.append(" ")
+			else:
+				listSep.append(":")
+			
 			
 			if len(listA) == self.chunkSize:
 				res.append("".join(listA))
@@ -47,95 +51,109 @@ class AlignedSequences:
 				res.append("".join(listA))
 				res.append("".join(listSep))
 				res.append("".join(listB))
+		res.append("")
 
 		return "\n".join(res)
-	
-	def __repr__(self):
-		print(str(self))
+
 		
-				
-			
-			
 
 class AlignMatrix:
 	"""
 	Represents an alignment matrix, used to determine the alignment score between two sequences
 	"""
 	
-	def __init__(self, scoreMatrix, seqA, seqB):
+	def __init__(self, scoreMatrix):
 		"""
-		Creates an AlignMatrix object that uses scoreMatrix as a scoring system between amino acids from sequences seqA and seqB.
+		Creates an AlignMatrix object that uses scoreMatrix as a scoring system between amino acids.
 		"""
-		if not (isinstance(seqA, Sequence) and isinstance(seqB, Sequence)):
-			raise TypeError("seqA and seqB must be Sequence objects")
-		if len(seqA)==0 or len(seqB)==0:
-			raise ValueError("seqA and seqB cannot be empty")
-			
-		if not isinstance(scoreMatrix, ScoreMatrix):
-			raise TypeError("scoreMatrix must be a ScoreMatrix object")
-			
-		self._colSeq = Sequence(seqA) #copies of sequences to align
-		self._rowSeq = Sequence(seqB)
 		self._scoreMatrix = scoreMatrix #scoring matrix to use
 		
-		#Used for alignment scores between sequences
-		self._alignMatrix = [[0 for i in range(len(self._colSeq)+1)] for j in range(len(self._rowSeq)+1)]
+		self._colSeq = None #copies of sequences to align
+		self._rowSeq = None
 		
-		#same kinds of matrix as _alignMatrix, used for affine gap penalty
-		self._rowGapMatrix = deepcopy(self._alignMatrix)
-		self._colGapMatrix = deepcopy(self._alignMatrix)
-		
-		#Used for backtracking purposes
-		self._originMatrix = [["" for i in range(len(self._colSeq)+1)] for j in range(len(self._rowSeq)+1)]
+		self._alignMatrix = None #Used for alignment scores between sequences
+		self._rowGapMatrix = None #used for affine gap penalty
+		self._colGapMatrix = None
+		self._originMatrix = None #Used for backtracking purposes
 		
 		self._alignMode = "" #Align mode (global, semiglobal, local)
 		
-		self._maxScoreRow = 0 #Indexes of maximum value from _alignMatrix
-		self._maxScoreCol = 0
-		
 		self._maxAlignScore = 0
+		self._maxScoreRow = 0 #Index of maximum value from _alignMatrix
+		self._maxScoreCol = 0
 		self._currentAlignPath = []
 		self._bestAlignPath = [] #sequence of origins for alignment with best score
 		
 		self._iniGapPenalty = 0 #Initial gap penalty
 		self._extGapPenalty = 0 #Extended gap penalty
 		
-		#Aligned sequences (result of alignment)
-		self._alignedSeqA = None
+		self._alignedSeqA = None #Aligned sequences (result of alignment)
 		self._alignedSeqB = None
 		
-		
-	def globalAlign(self, iniGapPenalty, extGapPenalty=None, semiGlobal=False):
+	def firstGlobalAlign(self, seqA, seqB, iniGapPenalty, extGapPenalty=None):
+		for result in self.globalAlign(seqA, seqB, iniGapPenalty, extGapPenalty):
+			return result
+	
+	def globalAlign(self, seqA, seqB, iniGapPenalty, extGapPenalty=None, semiGlobal=False):
 		if semiGlobal:
 			self._alignMode = "semiglobal"
 		else:
 			self._alignMode = "global"
-			
-		self.__initialize(iniGapPenalty, extGapPenalty) #Initialize all data structures
-		print(self)
+		
+		#Initialize all data structures
+		self.__initialize(seqA, seqB, iniGapPenalty, extGapPenalty)
+		
 		#Align in global mode, from the bottom right
 		yield from self.__align(len(self._rowSeq), len(self._colSeq))
 	
 	
-	def localAlign(self, iniGapPenalty, extGapPenalty=None, subOptimal=False):
+	def firstLocalAlign(self, seqA, seqB, iniGapPenalty, extGapPenalty=None):
+		for result in self.localAlign(seqA, seqB, iniGapPenalty, extGapPenalty):
+			return result
+	
+	def localAlign(self, seqA, seqB, iniGapPenalty, extGapPenalty=None, subOptimal=False):
 		self._alignMode = "local"
-		self.__initialize(iniGapPenalty, extGapPenalty) #Initialize all data structures
-		print(self)
+		
+		#Initialize all data structures
+		self.__initialize(seqA, seqB, iniGapPenalty, extGapPenalty)
+		
 		#Align in local mode, from the maximum value (optimal)
 		yield from self.__align(self._maxScoreRow, self._maxScoreCol)
 		
 		#If suboptimal alignments are requested
 		if subOptimal:
 			self.__clearBestPath() #Reevalute scores with best alignment reset to 0
-			print(self)
 			#Align in local mode, from the new maximum value (sub-optimal)
 			yield from self.__align(self._maxScoreRow, self._maxScoreCol)	
 	
 	
-	def __initialize(self, iniGapPenalty, extGapPenalty):
+	def __initialize(self, seqA, seqB, iniGapPenalty, extGapPenalty):
+		#Sequences
+		if len(seqA)==0 or len(seqB)==0:
+				raise ValueError("seqA and seqB cannot be empty")
+		self._colSeq = Sequence(seqA)
+		self._rowSeq = Sequence(seqB)
+		
+		#Alignments
+		self._alignSeqA = Sequence()
+		self._alignSeqB = Sequence()
+		
+		self._maxAlignScore = 0 #Maximum score found while aligning
+		self._maxScoreRow = 0 #Row of maximum score
+		self._maxScoreCol = 0 #Column of maximum score 
+		
+		self._currentAlignPath = [] #indexes of the current alignment
+		self._bestAlignPath = [] #indexes of the alignment with the best score
+		
 		#Gap penalties
 		self._iniGapPenalty = iniGapPenalty
 		self._extGapPenalty = iniGapPenalty if extGapPenalty is None else extGapPenalty
+		
+		#Matrices
+		self._alignMatrix = [[0 for i in range(len(self._colSeq)+1)] for j in range(len(self._rowSeq)+1)]
+		self._rowGapMatrix = deepcopy(self._alignMatrix)
+		self._colGapMatrix = deepcopy(self._alignMatrix)
+		self._originMatrix = [["" for i in range(len(self._colSeq)+1)] for j in range(len(self._rowSeq)+1)]
 		
 		#Fill initial values
 		for i in range(1, max(len(self._colSeq), len(self._rowSeq))+1):	
@@ -160,18 +178,8 @@ class AlignMatrix:
 				if i <= len(self._rowSeq): #First column
 					self._originMatrix[i][0] = "T"
 			
-				
-		self._alignSeqA = Sequence() #Alignment sequences
-		self._alignSeqB = Sequence()
 		
-		self._maxAlignScore = 0
-		self._bestAlignPath = [] #sequence of indexes for alignment with best score
-		self._currentAlignPath = []
-		
-		self._maxScoreRow = 0 #Row of maximum value
-		self._maxScoreCol = 0 #Column of maximum value 
-		
-		#Fill all matrix
+		#Fill all matrices
 		for row in range(1, len(self._rowSeq)+1):
 			for col in range(1, len(self._colSeq)+1):
 				self.__fill(row, col)
@@ -241,12 +249,16 @@ class AlignMatrix:
 		#Global alignments are complete when we reach the beginning of the matrix
 		if (self._alignMode == "local" and self._alignMatrix[i][j]==0) \
 		or (self._alignMode != "local" and i==0 and j==0):
-			yield AlignedSequences(Sequence(self._alignSeqA), Sequence(self._alignSeqB),\
+			#Create AlignedSequences object as result
+			result = AlignedSequences(Sequence(self._alignSeqA), Sequence(self._alignSeqB),\
 			score, identity, gaps, self._alignMode)
 			
-			if score > self._maxAlignScore: #Best alignment is remembered for subobtimal lookup
+			#Remember best alignment for subobtimal lookup
+			if score > self._maxAlignScore: 
 				self._maxAlignScore = score
 				self._bestAlignPath = deepcopy(self._currentAlignPath)
+			
+			yield result
 			
 		else:
 			score += self._alignMatrix[i][j] #TODO: check if score is sum or just last value
@@ -282,55 +294,32 @@ class AlignMatrix:
 		
 	#Representation
 	def __repr__(self):
+		result = []
 		sepSize = 5
 		rep = {"":"", "L": "_   ", "D": " \\  ", "T": "   |", "LD": "_\\  ","DT": " \\ |", "LT": "_  |", "LDT": "_\\ |"}
 		#Amino Acid column sequence
-		print(" "*2*sepSize, end="")
+		result.append(" "*2*sepSize)
 		for aa in self._colSeq :
-			print('{a!s:<{w}}'.format(a=aa, w=sepSize), end="")
+			result[-1] += '{a!s:<{w}}'.format(a=aa, w=sepSize)
 		
 		#First line of values (no amino acid)
-		print("\n", end=" ")
+		result.append(" ")
 		for origin in self._originMatrix[0]:
-			print('{o:>{w}}'.format(o=rep[origin], w=sepSize), end="")			
-		print("\n", end=" "*sepSize)
+			result[-1] += '{o:>{w}}'.format(o=rep[origin], w=sepSize)
+		
+		result.append(" "*sepSize)
 		for value in self._alignMatrix[0]:
-			print('{v:<{w}}'.format(v=value, w=sepSize), end="")
+			result[-1] += '{v:<{w}}'.format(v=value, w=sepSize)
 		
 		#Amino Acid line sequence and values
 		for values, origins, aa in zip(self._alignMatrix[1:], self._originMatrix[1:], self._rowSeq):
-			print("\n", end=" ")
+			result.append(" ")
 			for origin in origins:
-				print('{o:>{w}}'.format(o=rep[origin], w=sepSize), end="")
-			print()
-			print('{a!s:<{w}}'.format(a=aa, w=sepSize), end="")
+				result[-1] += '{o:>{w}}'.format(o=rep[origin], w=sepSize)
+			result.append("")
+			result[-1] += '{a!s:<{w}}'.format(a=aa, w=sepSize)
 			for value in values:
-				print('{v:<{w}}'.format(v=value, w=sepSize), end="")
-		print()
-		return ""
+				result[-1] += '{v:<{w}}'.format(v=value, w=sepSize)
 		
-
-s = ScoreMatrix(r"..\Resources\blosum\blosum62.iij")
-print(s)
-
-a = AlignMatrix(s, Sequence("ISALIGNED"), Sequence("THISLINE"))
-for alignedSeq in a.globalAlign(-8, -8):
-	print(alignedSeq)
-	
-
-
-"""
-seq = Sequence.loadFasta(r"..\Resources\fasta\maguk-sequences.fasta")
-		
-print(seq[0])
-print(seq[1])
-a = AlignMatrix(s, seq[0], seq[1])
-
-res = []
-for seqA, seqB in a.globalAlign(4, 1):
-	print(seqA[0:20], seqB[0:20], sep="\n")
-	break
-"""
-
-
+		return "\n".join(result)
 		

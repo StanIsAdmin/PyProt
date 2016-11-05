@@ -22,20 +22,6 @@ class Sequence:
 		#Format aminoAcids into a list of AminoAcid objects.
 		self._aaList = self.__formatAAList(aminoAcids) #List of amino acids
 	
-	@staticmethod
-	def loadFasta(path):
-		allSequences = []
-		with open(path, 'r') as fastaFile:
-			i = -1
-			for line in fastaFile:
-				if line[0] == ">":
-					i+=1
-					newSequence = Sequence()
-					newSequence._description = line[1:].strip()
-					allSequences.append(newSequence)
-				else:
-					allSequences[i].extend(line.strip())
-		return allSequences
 	
 	@staticmethod
 	def __formatAAList(aminoAcids):
@@ -94,7 +80,7 @@ class Sequence:
 	
 	#Representation
 	def __repr__(self):
-		print(str(self))
+		return str(self)
 		
 	def __str__(self):
 		return "".join([aa.getName(self._nameMode) for aa in self])
@@ -207,4 +193,19 @@ class Sequence:
 				return i
 		
 		return False
+		
+
+def loadFasta(path):
+	with open(path, 'r') as fastaFile:
+		newSequence = None
+		for line in fastaFile:
+			line_s = line.strip()
+			if line_s != "" and line_s[0] == ">":
+				if newSequence is not None:
+					yield newSequence
+				newSequence = Sequence(None, line_s[1:])
+			else:
+				newSequence.extend(line_s)
+		if len(newSequence)>0:
+			yield newSequence
 	
