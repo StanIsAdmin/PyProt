@@ -4,49 +4,9 @@ from alignMatrix import AlignMatrix
 from math import ceil
 
 
-"""
-def makeGroupsFromFasta(path, requiredIdentity):
-	sequences = [seq for seq in loadFasta(path)]
-	for seq in sequences:
-		print(seq.getDescription())
-		print(seq)
-	
-	
-	groups = [[sequences[0]]]
-	return groups
-	for seqA in sequences[1:]:
-		
-		groupFound = False
-		groupIndex = 0
-		group = groups[groupIndex]
-		
-		while (not groupFound) and len(groups) > groupIndex:
-			belongs = True
-			seqIndex = 0
-			seqB = group[seqIndex]
-			while belongs and len(group) > seqIndex:
-				alignment = align.firstGlobalAlign(seqA,seqB,1)
-				if alignment.gaps == 0 and alignment.identityPercent >= requiredIdentity:
-					seqIndex += 1
-					seqB = group[seqIndex]
-				else:
-					belongs = False
-			if belongs:
-				group.append(seqA)
-				groupFound = True
-				groupIndex = 0
-			else:
-				groupIndex += 1
-			
-		if not groupFound:
-			groups.append([seqA])
-	
-	return groups
-"""
-def makeGroupsFromFasta(path, requiredIdentity):
+def makeGroupsFromFasta(path, requiredIdentityPercent):
 	sequences = [seq for seq in loadFasta(path)]
 	groups = [[sequences[0]]]
-	align = AlignMatrix(ScoreMatrix())
 	
 	#For each outSequence not yet in a group
 	for outSequence in sequences[1:]:
@@ -55,22 +15,8 @@ def makeGroupsFromFasta(path, requiredIdentity):
 		
 		#Look for a group where outSequence belongs
 		while (not groupFound) and groupIndex < len(groups):
-			group = groups[groupIndex] #group we're looking in
-			belongs = False #does the sequence belong in this group ?
-			seqIndex = 0 #index of the sequence we're comparing it to
-			
-			while (not belongs) and seqIndex < len(group):
-				inSequence = group[seqIndex] #sequence from the group
-				
-				#Check if any sequences "match" the outSequence
-				alignment = align.firstGlobalAlign(outSequence,inSequence,-1000)
-				if alignment.gaps == 0 and alignment.identityPercent >= requiredIdentity:
-					belongs = True
-				else:
-					print(alignment)
-					seqIndex += 1 #Move on to next sequence
-			if belongs:
-				group.append(outSequence)
+			if belongs(outSequence, groups[groupIndex], requiredIdentityPercent):
+				groups[groupIndex].append(outSequence)
 				groupFound = True
 			else:
 				groupIndex += 1 #Move on to next group
@@ -80,8 +26,21 @@ def makeGroupsFromFasta(path, requiredIdentity):
 			groups.append([outSequence])
 	
 	return groups
-	
 
+def belongs(outSequence, group, requiredIdentityPercent):
+	requiredIdentity = requiredIdentityPercent/100
+
+	for inSequence in group:
+		minSize = min(len(outSequence), len(inSequence))
+		minMatches = ceil(requiredIdentity*minSize)
+		matches = 0
+		for i in range(minSize):
+			if outSequence[i] == inSequence[i]:
+				matches += 1
+			if matches >= minMatches:
+				return True
+	return False
+			
 
 path = r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\fasta\test.fasta"
 groups = makeGroupsFromFasta(path, 50)
