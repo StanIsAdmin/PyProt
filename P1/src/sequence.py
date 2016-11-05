@@ -17,10 +17,25 @@ class Sequence:
 		"""
 		
 		self._nameMode = "short" #the way in which AA names are displayed
+		self._description = "" #description of the sequence
 
 		#Format aminoAcids into a list of AminoAcid objects.
 		self._aaList = self.__formatAAList(aminoAcids) #List of amino acids
 	
+	@staticmethod
+	def loadFasta(path):
+		allSequences = []
+		with open(path, 'r') as fastaFile:
+			i = -1
+			for line in fastaFile:
+				if line[0] == ">":
+					i+=1
+					newSequence = Sequence()
+					newSequence._description = line[1:]
+					allSequences.append(newSequence)
+				else:
+					allSequences[i].extend(line.strip())
+		return allSequences
 	
 	@staticmethod
 	def __formatAAList(aminoAcids):
@@ -83,6 +98,9 @@ class Sequence:
 		
 	def __str__(self):
 		return "".join([aa.getName(self._nameMode) for aa in self])
+		
+	def getDescription(self):
+		return self._description
 	
 	def changeNameMode(self, newMode):
 		if newMode in ("long", "medium", "short"):

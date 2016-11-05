@@ -266,15 +266,7 @@ for seqA, seqB, score in a.globalAlign(-8, -8, True):
 
 
 """
-seq = []
-with open(r"..\Resources\fasta\maguk-sequences.fasta", 'r') as f:
-	i=-1
-	for line in f:
-		if line[0] == ">":
-			i+=1
-			seq.append(Sequence())
-		else:
-			seq[i].extend(line.strip())
+seq = Sequence.loadFasta(r"..\Resources\fasta\maguk-sequences.fasta")
 		
 print(seq[0])
 print(seq[1])
