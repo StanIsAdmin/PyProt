@@ -1,6 +1,6 @@
 from aminoAcid import AminoAcid
 from sequence import Sequence, loadFasta
-from scoreMatrix import ScoreMatrix
+from scoreMatrix import Score
 from alignMatrix import AlignMatrix
 from math import log, ceil
 import cProfile
@@ -162,11 +162,11 @@ def sumFrequenciesToProb(freqPairsList, freqSingleList, freqSumList):
 	
 def blosumFromProbabilities(probPairs, probSingle, requiredIdentityPercent):
 	"""
-	Fills and returns a ScoreMatrix according to the BLOSUM algorithm, from the probabilities
+	Fills and returns a Score according to the BLOSUM algorithm, from the probabilities
 	of AA pairs and singletons provided in 'probPairs' and 'probSingle'.
 	"""
-	#Create empty ScoreMatrix, ignoring AAs B,Z,J,U,O
-	scoreMatrix = ScoreMatrix("", "BLOSUM{}".format(requiredIdentityPercent), "BZJUO")
+	#Create empty Score, ignoring AAs B,Z,J,U,O
+	scoreMatrix = Score("", "BLOSUM{}".format(requiredIdentityPercent), "BZJUO")
 	
 	for key, qAB in probPairs.items():
 		#qAB is the evolutionary probability of the AA pair (A,B)
@@ -186,7 +186,7 @@ def blosumFromProbabilities(probPairs, probSingle, requiredIdentityPercent):
 			
 def blosumFromFasta(requiredIdentityPercent, *filepaths):
 	"""
-	Creates and returns a ScoreMatrix for all sequences in the provided 'filepaths',
+	Creates and returns a Score for all sequences in the provided 'filepaths',
 	using the BLOSUM approach with an identity of at least 'requiredIdentityPercent'.
 	Each file is grouped independently and only then their weighted probabilities are merged.
 	"""

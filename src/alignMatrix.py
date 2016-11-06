@@ -1,4 +1,4 @@
-from scoreMatrix import ScoreMatrix
+from scoreMatrix import Score
 from sequence import Sequence, loadFasta
 from aminoAcid import AminoAcid
 from copy import deepcopy
@@ -364,7 +364,7 @@ class AlignMatrix:
 		
 		return "\n".join(result)
 		
-s = ScoreMatrix(r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\blosum\blosum62.iij", "BLOSUM 62", "BZJUO")
+s = Score(r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\blosum\blosum62.iij", "BLOSUM 62", "BZJUO")
 a = AlignMatrix(s)
 sequences = [seq for seq in loadFasta(r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\fasta\PDZ-sequences.fasta")]
 
