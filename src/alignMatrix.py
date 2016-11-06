@@ -1,5 +1,5 @@
 from scoreMatrix import ScoreMatrix
-from sequence import Sequence
+from sequence import Sequence, loadFasta
 from aminoAcid import AminoAcid
 from copy import deepcopy
 
@@ -76,8 +76,11 @@ class AlignMatrix:
 		self._originMatrix = None #Used for backtracking purposes
 		
 		self._alignMode = "" #Align mode (global, semiglobal, local)
+		self._isSuboptimal = False #Is the alignment subobtimal ?
 		
 		self._maxAlignScore = 0 #Maximum score
+		self._currentAlignScore = 0 #Score for this alignment
+		
 		self._maxScoreRows = [] #Index of maximum values from _alignMatrix
 		self._maxScoreCols = []
 		self._currentAlignPath = []
@@ -94,7 +97,8 @@ class AlignMatrix:
 		"""
 		Returns all best global alignment between 'seqA' and 'seqB' with the provided
 		initial and extended gap penalties.
-		If 'semiGlobal' is True, allows alignment not to align both starts and ends.
+		If 'semiGlobal' is True, allows alignment to discard the start and end of either sequence.
+		(this allows for better alignments when sequences overlap only partially)
 		"""
 		if semiGlobal:
 			self._alignMode = "semiglobal"
@@ -105,7 +109,13 @@ class AlignMatrix:
 		self.__initialize(seqA, seqB, iniGapPenalty, extGapPenalty)
 		
 		#Align in global mode, from the bottom right
-		yield from self.__align(len(self._rowSeq), len(self._colSeq))
+		if self._alignMode == "global":
+			self._currentAlignScore = self._alignMatrix[-1][-1]
+			yield from self.__align(len(self._rowSeq), len(self._colSeq))
+		else:
+			self._currentAlignScore = self._maxAlignScore
+			for row, col in zip(self._maxScoreRows, self._maxScoreCols):
+				yield from self.__align(row, col)
 	
 	
 	def localAlign(self, seqA, seqB, iniGapPenalty, extGapPenalty=None, subOptimal=False):
@@ -120,15 +130,18 @@ class AlignMatrix:
 		self.__initialize(seqA, seqB, iniGapPenalty, extGapPenalty)
 		
 		#Align in local mode, from the maximum value (optimal)
+		self._currentAlignScore = self._maxAlignScore
 		for row, col in zip(self._maxScoreRows, self._maxScoreCols):
 			yield from self.__align(row, col)
 		
 		#If suboptimal alignments are requested
 		if subOptimal:
+			self._isSuboptimal = True
 			self.__clearBestPath() #Reevalute scores with best alignment reset to 0
+			self._currentAlignScore = self._maxAlignScore
 			#Align in local mode, from the new maximum value (sub-optimal)
 			for row, col in zip(self._maxScoreRows, self._maxScoreCols):
-				yield from self.__align(row, col)	
+				yield from self.__align(row, col)
 	
 	
 	def __initialize(self, seqA, seqB, iniGapPenalty, extGapPenalty):
@@ -142,6 +155,7 @@ class AlignMatrix:
 		self._rowSeq = Sequence(seqB)
 		
 		#Alignments
+		self._subOptimal = False
 		self._alignSeqA = Sequence()
 		self._alignSeqB = Sequence()
 		
@@ -165,28 +179,21 @@ class AlignMatrix:
 		self._originMatrix = [["" for i in range(len(self._colSeq)+1)] \
 								for j in range(len(self._rowSeq)+1)]
 		
-		#Fill initial values
-		for i in range(1, max(len(self._colSeq), len(self._rowSeq))+1):	
-			#Global alignment : first line and colunm have initial scores
-			if self._alignMode== "global":
+		#Global alignment : first line and colunm have initial scores and origins
+		if self._alignMode== "global":
+			for i in range(1, max(len(self._colSeq), len(self._rowSeq))+1):	
 				val = self._iniGapPenalty + self._extGapPenalty*(i-1)
 				if i <= len(self._colSeq): #First row
 					self._alignMatrix[0][i] = val
 					self._rowGapMatrix[0][i] = val 
 					self._colGapMatrix[0][i] = val
+					self._originMatrix[0][i] = "L" #Origin is left
 				
 				if i <= len(self._rowSeq): #First column
 					self._alignMatrix[i][0] = val
 					self._rowGapMatrix[i][0] = val 
 					self._colGapMatrix[i][0] = val
-					
-			#Non-local alignment : first line and column have initial origins
-			if self._alignMode != "local":
-				if i <= len(self._colSeq): #First row
-					self._originMatrix[0][i] = "L"
-				
-				if i <= len(self._rowSeq): #First column
-					self._originMatrix[i][0] = "T"
+					self._originMatrix[i][0] = "T" #Origin is top					
 			
 		
 		#Fill all matrices
@@ -196,6 +203,9 @@ class AlignMatrix:
 	
 	
 	def __fill(self, row, col):
+		"""
+		Calculates the score for value at row 'row' and column 'col'.
+		"""
 		#Row gap matrix
 		initialGapScore = self._alignMatrix[row-1][col] + self._iniGapPenalty
 		extendedGapScore = self._rowGapMatrix[row-1][col] + self._extGapPenalty
@@ -219,10 +229,11 @@ class AlignMatrix:
 			self._alignMatrix[row][col] = maxScore = max(insertScore, deleteScore, matchScore)
 			
 		#Max alignment scores
-		if maxScore > self._maxAlignScore:
+		if maxScore > self._maxAlignScore: #New max alignment
+			self._maxAlignScore = maxScore
 			self._maxScoreRows = [row]
 			self._maxScoreCols = [col]
-		elif maxScore == self._maxAlignScore:
+		elif maxScore == self._maxAlignScore: #Same max alignment
 			self._maxScoreRows.append(row)
 			self._maxScoreCols.append(col)
 			
@@ -236,17 +247,22 @@ class AlignMatrix:
 	
 	
 	def __clearBestPath(self):
-		self._maxAlignScore = 0
-		self._maxScoreRows = [] #Rows of maximum value
-		self._maxScoreCols = [] #Columns of maximum value
+		"""
+		Resets all scores from the first best alignment and then reevaluates the affected scores.
+		A new maximum score will be found from these, allowing for new alignment lookups.
+		"""
+		self._maxAlignScore = 0 #New maximum will be found from modified values
+		self._maxScoreRows = []
+		self._maxScoreCols = []
 		
-		for row, col in self._bestAlignPath[::-1]:
-			self._alignMatrix[row][col] = 0
+		for row, col in self._bestAlignPath[::-1]: #Reverse best align path
+			self._alignMatrix[row][col] = 0 #Reset scores
 			self._colGapMatrix[row][col] = 0
 			self._rowGapMatrix[row][col] = 0
 			
+			#Reevaluate scores for further rows and columns
 			for furtherRow in range(row+1, len(self._rowSeq)+1):
-				if (furtherRow, col) not in self._bestAlignPath:
+				if (furtherRow, col) not in self._bestAlignPath: #Only if not part of best path
 					self._originMatrix[furtherRow][col] = ""
 					self.__fill(furtherRow, col)
 			
@@ -254,27 +270,33 @@ class AlignMatrix:
 				if (row, furtherCol) not in self._bestAlignPath:
 					self._originMatrix[row][furtherCol] = ""
 					self.__fill(row, furtherCol)
+					
 			
 		
 	
-	def __align(self, i, j, score=0, identity=0, gaps=0):
+	def __align(self, i, j, identity=0, gaps=0):
+		"""
+		Yields all best alignments starting from row i and column j.
+		"""
 		#Local alignments are complete when we reach a null score
 		#Global alignments are complete when we reach the beginning of the matrix
+		#Semiglobal alignments are complete when we reach an edge of the matrix
 		if (self._alignMode == "local" and self._alignMatrix[i][j]==0) \
-		or (self._alignMode != "local" and i==0 and j==0):
+		or (self._alignMode == "global" and i==0 and j==0) \
+		or (self._alignMode == "semiglobal" and (i==0 or j==0)):
+			
 			#Create AlignedSequences object as result
 			result = AlignedSequences(Sequence(self._alignSeqA), Sequence(self._alignSeqB),\
-			score, identity, gaps, self._alignMode)
+			self._currentAlignScore, identity, gaps, \
+			self._alignMode + "-suboptimal"*self._isSuboptimal)
 			
-			#Remember best alignment for subobtimal lookup
-			if score > self._maxAlignScore: 
-				self._maxAlignScore = score
+			#Remember first best alignment for subobtimal lookup
+			if self._bestAlignPath == []:
 				self._bestAlignPath = deepcopy(self._currentAlignPath)
 			
 			yield result
 			
 		else:
-			score += self._alignMatrix[i][j] #TODO: check if score is sum or just last value
 			for origin in self._originMatrix[i][j]:
 				self._currentAlignPath.append((i,j))
 				
@@ -282,20 +304,20 @@ class AlignMatrix:
 					gaps += 1
 					self._alignSeqA.insert("gap", 0)
 					self._alignSeqB.insert(self._rowSeq[i-1], 0)
-					yield from self.__align(i-1, j, score, identity, gaps)
+					yield from self.__align(i-1, j, identity, gaps)
 					
 				elif origin == "D": #diagonal
 					if self._colSeq[j-1] == self._rowSeq[i-1]:
 						identity += 1
 					self._alignSeqA.insert(self._colSeq[j-1], 0)
 					self._alignSeqB.insert(self._rowSeq[i-1], 0)
-					yield from self.__align(i-1, j-1, score, identity, gaps)
+					yield from self.__align(i-1, j-1, identity, gaps)
 				
 				elif origin == "L": #left
 					gaps += 1
 					self._alignSeqA.insert(self._colSeq[j-1], 0)
 					self._alignSeqB.insert("gap", 0)
-					yield from self.__align(i, j-1, score, identity, gaps)
+					yield from self.__align(i, j-1, identity, gaps)
 				
 				else:
 					raise ValueError("Origin must be T (top), D (diagonal) or L (left)")
@@ -343,8 +365,8 @@ class AlignMatrix:
 		return "\n".join(result)
 		
 s = ScoreMatrix(r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\blosum\blosum62.iij", "BLOSUM 62", "BZJUO")
-print(s)
 a = AlignMatrix(s)
-print(a)
-for align in a.globalAlign("ISALIGNED", "THISLINE", -4):
+sequences = [seq for seq in loadFasta(r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\fasta\PDZ-sequences.fasta")]
+
+for align in a.localAlign(sequences[0], sequences[1], -4, -1, True):
 	print(align)

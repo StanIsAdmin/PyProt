@@ -45,6 +45,9 @@ class ScoreMatrix:
 				
 	#Representation
 	def __repr__(self):
+		"""
+		Representation.
+		"""
 		sepSize = 4
 		result = ["---------- " + self._description + " ----------"]
 		for values, aa in zip(self._matrix, self._aaSequence):
@@ -61,6 +64,9 @@ class ScoreMatrix:
 	
 	#Scoring
 	def setScore(self, aa1, aa2, score):
+		"""
+		Set the score assigned to AminoAcids 'aa1', 'aa2'.
+		"""
 		id1 = self._aaOrder[aa1]
 		id2 = self._aaOrder[aa2]
 		if id1 > id2:
@@ -69,6 +75,9 @@ class ScoreMatrix:
 			self._matrix[id2][id1] = score
 		
 	def getScore(self, aa1, aa2):
+		"""
+		Get the score assigned to AminoAcids 'aa1', 'aa2'.
+		"""
 		id1 = self._aaOrder[aa1]
 		id2 = self._aaOrder[aa2]
 		if id1 > id2:

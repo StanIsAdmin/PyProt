@@ -3,7 +3,7 @@ from copy import deepcopy
 
 class Sequence:
 	"""
-	Represents an amino acid sequence, and accepts all operations that can be done on such a sequence
+	Represents a sequence of amino acids.
 	"""
 	
 	def __init__(self, aminoAcids=None, description=""):
@@ -25,6 +25,8 @@ class Sequence:
 	
 	@staticmethod
 	def __formatAAList(aminoAcids):
+		"""Formats 'aminoAcids' into a list of AminoAcid objects."""
+		
 		#Sequence object's aaList is deep copied
 		if isinstance(aminoAcids, Sequence):
 			return deepcopy(aminoAcids._aaList)
@@ -80,15 +82,19 @@ class Sequence:
 	
 	#Representation
 	def __repr__(self):
+		"""Representation"""
 		return str(self)
 		
 	def __str__(self):
+		"""String conversion"""
 		return "".join([aa.getName(self._nameMode) for aa in self])
 		
 	def getDescription(self):
+		"""Returns the description of the sequence."""
 		return self._description
 	
 	def changeNameMode(self, newMode):
+		"""Changes the name display mode to 'newMode'."""
 		if newMode in ("long", "medium", "short"):
 			self._nameMode = newMode
 		else:
@@ -97,8 +103,8 @@ class Sequence:
 	
 	#Item and slice manipulation	
 	def __getitem__(self, key):
+		"""Return a Sequence object containing copies of the items from the slice"""
 		if isinstance(key, slice):
-			#Return a Sequence object containing copies of the items from the slice
 			return Sequence([self._aaList[index] for index in range(*key.indices(len(self)))])
 		else:
 			try:
@@ -107,8 +113,8 @@ class Sequence:
 				raise ValueError("key does not represent an index or slice")
 		
 	def __setitem__(self, key, value):		
+		"""Set value for a slice of the sequence"""
 		if isinstance(key, slice):
-			#Set value for a slice of the sequence
 			for index in range(*key.indices(len(self))): #range(start, stop, step)
 				self._aaList[index] = AminoAcid(value) #create copies
 		else:
@@ -118,8 +124,8 @@ class Sequence:
 				raise ValueError("key does not represent an index or slice")
 		
 	def __delitem__(self, key):
+		"""Delete a slice of the sequence"""
 		if isinstance(key, slice):
-			#Delete a slice of the sequence
 			start, stop, step = key.indices(len(self))
 			del self._aaList[start:stop:step]
 		else:
@@ -175,6 +181,9 @@ class Sequence:
 	
 	#Lookup
 	def __contains__(self, item):
+		"""
+		Returns True if item is contained in Sequence, False if not.
+		"""
 		return item in self._aaList
 	
 	def hasSubSequence(self, subSequence, startIndex=0):
@@ -196,6 +205,9 @@ class Sequence:
 		
 
 def loadFasta(path):
+	"""
+	Loads the fasta file located in 'path' and yields the Sequences it contains.
+	"""
 	with open(path, 'r') as fastaFile:
 		newSequence = None
 		for line in fastaFile:
