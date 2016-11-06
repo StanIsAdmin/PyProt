@@ -100,6 +100,18 @@ class AminoAcid:
 	def __ne__(self, other):
 		return self._id != other._id
 		
+	def __gt__(self, other):
+		return self._id > other._id
+		
+	def __ge__(self, other):
+		return self._id >= other._id
+		
+	def __lt__(self, other):
+		return self._id < other._id
+	
+	def __le__(self, other):
+		return self._id <= other._id
+		
 	def isGap(self):
 		return self._id == 0
 	

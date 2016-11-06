@@ -6,12 +6,14 @@ class ScoreMatrix:
 	Represents a scoring matrix, used to determine the score between two Amino Acids
 	"""
 	
-	def __init__(self, path=""):
+	def __init__(self, path="", description="", ignore=""):
 		"""
 		Creates a ScoreMatrix object.
 		If 'path' is provided, loads the Score values from an iij file.
 		Otherwise, creates a ScoreMatrix for all possible AminoAcids with values 0.
 		"""
+		self._description = description
+		self._ignore = Sequence(ignore)
 		self._matrix = []
 		self._aaOrder = {}
 		self._aaSequence = Sequence()
@@ -35,28 +37,30 @@ class ScoreMatrix:
 		else:
 			lineSize = 1
 			for aa in AminoAcid.getAllNames():
-				self._aaSequence.extend(aa)
-				self._aaOrder[self._aaSequence[-1]] = lineSize-1
-				self._matrix.append([0 for i in range(lineSize)])
-				lineSize += 1
+				if AminoAcid(aa) not in self._ignore:
+					self._aaSequence.extend(aa)
+					self._aaOrder[self._aaSequence[-1]] = lineSize-1
+					self._matrix.append([0 for i in range(lineSize)])
+					lineSize += 1
 				
 	#Representation
 	def __repr__(self):
 		sepSize = 4
-		result = []
+		result = [" - - - " + self._description + " - - - "]
 		for values, aa in zip(self._matrix, self._aaSequence):
 			tempstr = '{a!s:<{w}}'.format(a=aa, w=sepSize)
 			for value in values:
 				tempstr += '{v:<{w}}'.format(v=value, w=sepSize)
 			result.append(tempstr)
-		result.append(" "*sepSize)
+		tempstr = " "*sepSize
 		for aa in self._aaSequence :
-			result.append('{a!s:<{w}}'.format(a=aa, w=sepSize))
-		
+			tempstr += '{a!s:<{w}}'.format(a=aa, w=sepSize)
+		result.append("")
+		result.append(tempstr)
 		return "\n".join(result)
 	
 	#Scoring
-	def setScore(self, score, aa1, aa2):
+	def setScore(self, aa1, aa2, score):
 		id1 = self._aaOrder[aa1]
 		id2 = self._aaOrder[aa2]
 		if id1 > id2:

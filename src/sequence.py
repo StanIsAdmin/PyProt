@@ -110,7 +110,7 @@ class Sequence:
 		if isinstance(key, slice):
 			#Set value for a slice of the sequence
 			for index in range(*key.indices(len(self))): #range(start, stop, step)
-				self._aaList[index] = AminoAcid(value)
+				self._aaList[index] = AminoAcid(value) #create copies
 		else:
 			try:
 				self._aaList[key] = AminoAcid(value) #Set value for one item
