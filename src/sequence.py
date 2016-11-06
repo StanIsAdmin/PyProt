@@ -17,6 +17,7 @@ class Sequence:
 		"""
 		
 		self._nameMode = "short" #the way in which AA names are displayed
+		self._separator = "" #how to separate AA names when displayed
 		self._description = description #description of the sequence
 
 		#Format aminoAcids into a list of AminoAcid objects.
@@ -87,19 +88,22 @@ class Sequence:
 		
 	def __str__(self):
 		"""String conversion"""
-		return "".join([aa.getName(self._nameMode) for aa in self])
+		return self._separator.join([aa.getName(self._nameMode) for aa in self])
 		
 	def getDescription(self):
 		"""Returns the description of the sequence."""
 		return self._description
 	
-	def changeNameMode(self, newMode):
+	def setNameMode(self, newMode):
 		"""Changes the name display mode to 'newMode'."""
 		if newMode in ("long", "medium", "short"):
 			self._nameMode = newMode
 		else:
 			raise ValueError("newMode must be 'long', 'medium' or 'short'")
 	
+	def setSeparator(self, newSep):
+		"""Changes the string that separates each displayed AminoAcid."""
+		self._separator = newSep
 	
 	#Item and slice manipulation	
 	def __getitem__(self, key):
