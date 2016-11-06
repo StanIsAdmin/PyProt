@@ -79,7 +79,8 @@ class AminoAcid:
 	
 	#Representation
 	def __repr__(self):
-		return self._nameGroups[self._id][self._defaultNameMode] #default name mode
+		nameIndex = AminoAcid._nameModes[self._defaultNameMode]
+		return self._nameGroups[self._id][nameIndex] #default name mode
 		
 	def __str__(self):
 		return self.getName() #default name mode
