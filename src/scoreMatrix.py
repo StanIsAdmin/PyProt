@@ -46,7 +46,7 @@ class ScoreMatrix:
 	#Representation
 	def __repr__(self):
 		sepSize = 4
-		result = [" - - - " + self._description + " - - - "]
+		result = ["---------- " + self._description + " ----------"]
 		for values, aa in zip(self._matrix, self._aaSequence):
 			tempstr = '{a!s:<{w}}'.format(a=aa, w=sepSize)
 			for value in values:

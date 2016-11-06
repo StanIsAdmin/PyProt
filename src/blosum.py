@@ -76,7 +76,7 @@ def valueDictsFromGroups(groups):
 			
 			for seq in group: #For each sequence in group
 				try:
-					groupCol[seq[col]] += 1
+					groupCol[seq[col]] += 1 #Increment count
 				except:
 					groupCol[seq[col]] = 1
 			
@@ -87,8 +87,17 @@ def valueDictsFromGroups(groups):
 
 	
 def getFrequencies(groupValues, groupSizes):
-	seqSize = len(groupValues[0])
-	groupCount = len(groupSizes)
+	"""
+	Evaluates the frequencies of AminoAcids within columns of groups in 'groupValues'.
+	Frequencies are weighted according to group sizes in 'groupSizes'.
+	Returns two dictionaries and a number:
+		-'freqPairs' maps pairs of AminoAcids to their frequencies
+		-'freqSingle' maps single AminoAcids to their frequencies
+		-'freqSum' is the sum of all frequencies
+	"""
+	seqSize = len(groupValues[0]) #Size of the Sequences
+	groupCount = len(groupSizes) #Number of groups
+	
 	freqPairs = {} #frequencies of amino acid pairs (fAB)
 	
 	#Frequencies of single amino acids (fA)
@@ -96,80 +105,107 @@ def getFrequencies(groupValues, groupSizes):
 	
 	freqSum = 0 #Sum of frequencies  sum(fAB)
 	
-	for col in range(seqSize):
-		for groupAIndex in range(groupCount-1):
+	for col in range(seqSize): #Each column
+		for groupAIndex in range(groupCount-1): #Each groupA
 			groupA = groupValues[groupAIndex]
 			groupASize = groupSizes[groupAIndex]
 			
-			for groupBIndex in range(groupAIndex+1, groupCount):
+			for groupBIndex in range(groupAIndex+1, groupCount): #Each further groupB
 				groupB = groupValues[groupBIndex]
 				groupBSize = groupSizes[groupBIndex]
 				
-				for aaA, aaACount in groupA[col].items():
-					aaAPercent = aaACount / groupASize
+				for aaA, aaACount in groupA[col].items(): #Each AA from groupA
+					aaAFreq = aaACount / groupASize #Its frequency within groupA
 					
-					for aaB, aaBCount in groupB[col].items():
-						aaBPercent = aaBCount / groupBSize
-						aaScore = aaAPercent * aaBPercent
+					for aaB, aaBCount in groupB[col].items(): #Each AA from groupB
+						aaBFreq = aaBCount / groupBSize #Its frequency within groupB
 						
-						freqSum += aaScore	#Sum of frequencies			
-						freqSingle[aaA] += aaScore/2
-						freqSingle[aaB] += aaScore/2
+						aaPairFreq = aaAFreq * aaBFreq #Pair frequency
+						freqSum += aaPairFreq	#Sum of all frequencies			
+						freqSingle[aaA] += aaPairFreq/2
+						freqSingle[aaB] += aaPairFreq/2
 						
+						#Index is unique to this pair
 						pairIndex = (aaA, aaB) if aaA > aaB else (aaB, aaA)
 						try:
-							freqPairs[pairIndex] += aaScore
+							freqPairs[pairIndex] += aaPairFreq
 						except:
-							freqPairs[pairIndex] = aaScore
+							freqPairs[pairIndex] = aaPairFreq
+	
 	return freqPairs, freqSingle, freqSum
 	
-def sumFrequenciesToProb(freqPairsList, freqSingleList, freqSumList):
-	fSum = sum(freqSumList)
 	
-	probPairs, probSingle = {}, {}
+def sumFrequenciesToProb(freqPairsList, freqSingleList, freqSumList):
+	"""
+	Sums all frequencies in provided lists, and transforms them to probabilities according
+	to the sum of frequencies found in 'freqSumList'.
+	"""
+	fSum = sum(freqSumList) #Absolute sum of all frequencies
+	probPairs, probSingle = {}, {} #Probabilities for pairs and single AAs
+	
 	for freqPairs, freqSingle in zip(freqPairsList, freqSingleList):
 		for key,value in freqPairs.items():
+			#Sum all frequencies for matching AA pairs, divided by fSum
 			try:
-				probPairs[key] += value / fSum
+				probPairs[key] += value / fSum 
 			except:
 				probPairs[key] = value / fSum
 		for key,value in freqSingle.items():
+			#Sum all frequencies for matching AAs, divided by fSum
 			try:
 				probSingle[key] += value / fSum
 			except:
 				probSingle[key] = value / fSum
+	
 	return probPairs, probSingle
 		
 	
-def blosumFromFrequencies(scoreMatrix, probPairs, probSingle):
+def blosumFromProbabilities(probPairs, probSingle, requiredIdentityPercent):
+	"""
+	Fills and returns a ScoreMatrix according to the BLOSUM algorithm, from the probabilities
+	of AA pairs and singletons provided in 'probPairs' and 'probSingle'.
+	"""
+	#Create empty ScoreMatrix, ignoring AAs B,Z,J,U,O
+	scoreMatrix = ScoreMatrix("", "BLOSUM{}".format(requiredIdentityPercent), "BZJUO")
+	
 	for key, qAB in probPairs.items():
-		
+		#qAB is the evolutionary probability of the AA pair (A,B)
 		aaA, aaB = key #Both amino acids
-		pA, pB = probSingle[aaA],probSingle[aaB] #Their single probabilities
+		pA, pB = probSingle[aaA], probSingle[aaB] #Their single probabilities
 		
+		#eAB is the random probability of the AA pair (A, B) given their single probabilities
 		eAB = pA * pA if aaA == aaB else 2 * pA * pB
+		
+		#The BLOSUM score for this pair is the log-odds-ratio of evolutionary and random prob.
 		sAB = int(round(2 * log(qAB / eAB, 2)))
-		scoreMatrix.setScore(aaA, aaB, sAB)
+		scoreMatrix.setScore(aaA, aaB, sAB) #Fill the matrix
 	
 	return scoreMatrix
 			
 		
 			
 def blosumFromFasta(requiredIdentityPercent, *filepaths):
-	freqPairsList, freqSingleList, freqSumList = [], [], []
-	#MULTITHREAD
-	for path in filepaths:
-		groups = makeGroupsFromFasta(path, requiredIdentityPercent)
-		groupValues,groupSizes = valueDictsFromGroups(groups)
-		freqPairs, freqSingle, freqSum = getFrequencies(groupValues, groupSizes)
+	"""
+	Creates and returns a ScoreMatrix for all sequences in the provided 'filepaths',
+	using the BLOSUM approach with an identity of at least 'requiredIdentityPercent'.
+	Each file is grouped independently and only then their weighted probabilities are merged.
+	"""
+	#Results for each different files are first stored in lists
+	freqPairsList, freqSingleList, freqSumList = [], [], [] 
+	
+	for path in filepaths: #for each .fasta file
+		groups = makeGroupsFromFasta(path, requiredIdentityPercent) #groups
+		groupValues, groupSizes = valueDictsFromGroups(groups) #groups as dicts
+		freqPairs, freqSingle, freqSum = getFrequencies(groupValues, groupSizes) #frequencies
 		
-		freqPairsList.append(freqPairs) #Not atomic, only addition later
+		freqPairsList.append(freqPairs) #Append results
 		freqSingleList.append(freqSingle)
 		freqSumList.append(freqSum)
-	#END MULTITHREAD
+	
+	#Merge (sum) results together
 	probPairs, probSingle = sumFrequenciesToProb(freqPairsList, freqSingleList, freqSumList)
-	scoreMatrix = ScoreMatrix("", "BLOSUM{}".format(requiredIdentityPercent), "BZJUO")
-	blosum = blosumFromFrequencies(scoreMatrix, probPairs, probSingle)
+	#Create the BLOSUM matrix
+	blosum = blosumFromProbabilities(probPairs, probSingle, requiredIdentityPercent)
 	print(blosum)
 
 	
@@ -177,4 +213,4 @@ path1 = r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\fasta\SH3-A.fasta"
 path2 = r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\fasta\SH3-B.fasta"
 path3 = r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\fasta\SH3-C.fasta"
 path4 = r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\fasta\SH3-D.fasta"
-blosumFromFasta(70, path1)
+blosumFromFasta(70, path1, path2, path3, path4)
