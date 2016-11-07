@@ -39,6 +39,7 @@ class AlignedSequences:
 		res.append("")
 		if self.condensed:
 			return "\n".join(res)
+			
 		listA, listB, listI = [], [], []
 		for a, i, b in zip(self.seqA, self.seqInter, self.seqB):
 			listA.append(str(a))
