@@ -19,6 +19,8 @@ class Sequence:
 		self._nameMode = "short" #the way in which AA names are displayed
 		self._separator = "" #how to separate AA names when displayed
 		self._description = description #description of the sequence
+		if self._description == "" and isinstance(aminoAcids, Sequence):
+			self._description = aminoAcids.getDescription()
 
 		#Format aminoAcids into a list of AminoAcid objects.
 		self._aaList = self.__formatAAList(aminoAcids) #List of amino acids

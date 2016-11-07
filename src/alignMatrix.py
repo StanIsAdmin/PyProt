@@ -1,4 +1,4 @@
-from scoreMatrix import Score
+from score import Score
 from sequence import Sequence, loadFasta
 from aminoAcid import AminoAcid
 from copy import deepcopy
@@ -7,16 +7,18 @@ class AlignedSequences:
 	"""
 	Represents two aligned sequences with some metadata about the alignemnt.
 	"""
-	def __init__(self, seqA, seqB, score, identity, gaps, alignmentType):
+	def __init__(self, seqA, seqB, seqInter, score, identity, gaps, similarity, alignmentType):
 		self.seqA = seqA #Aligned sequences
 		self.seqB = seqB
+		self.seqInter = seqInter
 		self.score = score #Score of alignment
-		self.identity = identity #Identity, absolute and %
-		self.identityPercent = 100*(identity/min(len(seqA), len(seqB)))
+		self.identity = identity #Identity
 		self.gaps = gaps #Gaps count
+		self.similarity = similarity + identity
 		self.alignmentType = alignmentType #Options used for alignemnt
 		
 		self.chunkSize = 80 #Used for display
+		self.condensed = False
 		
 	def __repr__(self):
 		"""
@@ -24,33 +26,30 @@ class AlignedSequences:
 		"""
 		res = []
 		res.append("---------- Alignment ----------")
-		res.append("Type     : " + self.alignmentType)
-		res.append("Score    : " + str(self.score))
-		res.append("Identity : " + str(self.identity) \
-			+ " ({0:.2f}%)".format(self.identityPercent))
-		res.append("Gaps     : " + (str(self.gaps) if self.gaps > 0 else "None"))
+		res.append("Type       : " + self.alignmentType)
+		res.append("Score      : " + str(self.score))
+		res.append("Identity   : " + str(self.identity) \
+			+ " ({0:.2f}%)".format(100*(self.identity/len(self.seqA))))
+		res.append("Similarity : " + str(self.similarity) \
+			+ " ({0:.2f}%)".format(100*(self.similarity/len(self.seqA))))
+		res.append("Gaps       : " + (str(self.gaps) if self.gaps > 0 else "None"))
 		res.append("")
 		res.append("Upper Sequence : " + self.seqA.getDescription())
 		res.append("Lower Sequence : " + self.seqB.getDescription())
 		res.append("")
-		
-		listA, listB, listSep = [], [], []
-		for a, b in zip(self.seqA, self.seqB):
+		if self.condensed:
+			return "\n".join(res)
+		listA, listB, listI = [], [], []
+		for a, i, b in zip(self.seqA, self.seqInter, self.seqB):
 			listA.append(str(a))
 			listB.append(str(b))
-			if a==b:
-				listSep.append("|")
-			elif a.isGap() or b.isGap():
-				listSep.append(" ")
-			else:
-				listSep.append(":")
-			
+			listI.append(i)
 			if len(listA) == self.chunkSize:
-				res.extend(["".join(listA), "".join(listSep), "".join(listB), "\n"])
-				listA, listB, listSep = [], [], []
+				res.extend(["".join(listA), "".join(listI), "".join(listB), "\n"])
+				listA, listB, listI = [], [], []
 		
 		if len(listA) > 0:
-			res.extend(["".join(listA), "".join(listSep), "".join(listB), ""])
+			res.extend(["".join(listA), "".join(listI), "".join(listB), ""])
 
 		return "\n".join(res)
 
@@ -158,6 +157,7 @@ class AlignMatrix:
 		self._subOptimal = False
 		self._alignSeqA = Sequence()
 		self._alignSeqB = Sequence()
+		self._alignInter = ""
 		
 		self._maxAlignScore = 0 #Maximum score found while aligning
 		self._maxScoreRows = [] #Rows of maximum score
@@ -274,7 +274,7 @@ class AlignMatrix:
 			
 		
 	
-	def __align(self, i, j, identity=0, gaps=0):
+	def __align(self, i, j, identity=0, gaps=0, similarity=0):
 		"""
 		Yields all best alignments starting from row i and column j.
 		"""
@@ -286,8 +286,9 @@ class AlignMatrix:
 		or (self._alignMode == "semiglobal" and (i==0 or j==0)):
 			
 			#Create AlignedSequences object as result
-			result = AlignedSequences(Sequence(self._alignSeqA), Sequence(self._alignSeqB),\
-			self._currentAlignScore, identity, gaps, \
+			result = AlignedSequences(Sequence(self._alignSeqA, self._colSeq.getDescription()), \
+			Sequence(self._alignSeqB, self._rowSeq.getDescription()),self._alignInter[::-1], \
+			self._currentAlignScore, identity, gaps, similarity, \
 			self._alignMode + "-suboptimal"*self._isSuboptimal)
 			
 			#Remember first best alignment for subobtimal lookup
@@ -301,23 +302,29 @@ class AlignMatrix:
 				self._currentAlignPath.append((i,j))
 				
 				if origin == "T": #top
-					gaps += 1
 					self._alignSeqA.insert("gap", 0)
 					self._alignSeqB.insert(self._rowSeq[i-1], 0)
-					yield from self.__align(i-1, j, identity, gaps)
+					self._alignInter += " "
+					yield from self.__align(i-1, j, identity, gaps+1, similarity)
 					
 				elif origin == "D": #diagonal
 					if self._colSeq[j-1] == self._rowSeq[i-1]:
 						identity += 1
+						self._alignInter += ":"
+					elif self._scoreMatrix.getScore(self._colSeq[j-1], self._rowSeq[i-1])>=0:
+						similarity += 1
+						self._alignInter += "."
+					else:
+						self._alignInter += " "
 					self._alignSeqA.insert(self._colSeq[j-1], 0)
 					self._alignSeqB.insert(self._rowSeq[i-1], 0)
-					yield from self.__align(i-1, j-1, identity, gaps)
+					yield from self.__align(i-1, j-1, identity, gaps, similarity)
 				
 				elif origin == "L": #left
-					gaps += 1
 					self._alignSeqA.insert(self._colSeq[j-1], 0)
 					self._alignSeqB.insert("gap", 0)
-					yield from self.__align(i, j-1, identity, gaps)
+					self._alignInter += " "
+					yield from self.__align(i, j-1, identity, gaps+1, similarity)
 				
 				else:
 					raise ValueError("Origin must be T (top), D (diagonal) or L (left)")
@@ -325,6 +332,7 @@ class AlignMatrix:
 				self._currentAlignPath.pop()
 				self._alignSeqA.delete(0)
 				self._alignSeqB.delete(0)
+				self._alignInter = self._alignInter[:-1]
 
 		
 	#Representation
