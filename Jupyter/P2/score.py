@@ -1,3 +1,5 @@
+from sequence import Sequence
+
 class Score:
 	"""
 	Represents a scoring matrix, used to determine the score between two Amino Acids
