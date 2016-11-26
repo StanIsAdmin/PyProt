@@ -372,10 +372,3 @@ class AlignMatrix:
 				result[-1] += '{v:<{w}}'.format(v=value, w=sepSize)
 		
 		return "\n".join(result)
-		
-s = Score(r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\blosum\blosum62.iij", "BLOSUM 62", "BZJUO")
-a = AlignMatrix(s)
-sequences = [seq for seq in loadFasta(r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\fasta\PDZ-sequences.fasta")]
-
-for align in a.localAlign(sequences[0], sequences[1], -4, -1, True):
-	print(align)
