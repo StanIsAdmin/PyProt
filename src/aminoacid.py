@@ -1,4 +1,4 @@
-from copy import deepcopy as deepcopy
+from copy import deepcopy
 
 nameGroups = (
 		("none/gap", "gap", "-"),

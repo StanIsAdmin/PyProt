@@ -1,5 +1,5 @@
-from aminoAcid import AminoAcid
 from copy import deepcopy
+from aminoacid import AminoAcid
 
 class Sequence:
 	"""

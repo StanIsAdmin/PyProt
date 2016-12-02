@@ -1,9 +1,9 @@
-from aminoAcid import AminoAcid
-from sequence import Sequence, loadFasta
-from scoreMatrix import Score
-from alignMatrix import AlignMatrix
 from math import log, ceil
-import cProfile
+from aminoacid import AminoAcid
+from sequence import Sequence, loadFasta
+from score import Score
+from talign import TAlign, TAligned
+
 
 def belongs(outSequence, group, minMatches):
 	"""
@@ -207,10 +207,3 @@ def blosumFromFasta(requiredIdentityPercent, *filepaths):
 	#Create the BLOSUM matrix
 	blosum = blosumFromProbabilities(probPairs, probSingle, requiredIdentityPercent)
 	print(blosum)
-
-	
-path1 = r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\fasta\SH3-A.fasta"
-path2 = r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\fasta\SH3-B.fasta"
-path3 = r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\fasta\SH3-C.fasta"
-path4 = r"C:\Users\mytra\Documents\GitHub\BioInfo\Resources\fasta\SH3-D.fasta"
-blosumFromFasta(70, path1, path2, path3, path4)

@@ -1,12 +1,12 @@
+from aminoacid import AminoAcid
 from sequence import Sequence
-from aminoAcid import AminoAcid
 
 class Score:
 	"""
 	Represents a scoring matrix, used to determine the score between two Amino Acids
 	"""
 	
-	def __init__(self, path="", description="", ignore=""):
+	def __init__(self, path="", description="", ignore=None):
 		"""
 		Creates a Score object.
 		If 'path' is provided, loads the Score values from an iij file.

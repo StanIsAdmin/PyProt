@@ -1,10 +1,11 @@
-from score import Score
-from sequence import Sequence, loadFasta
-from aminoAcid import AminoAcid
 from copy import deepcopy
+from aminoacid import AminoAcid
+from sequence import Sequence, loadFasta
+from score import Score
 
-class AlignedSequences:
+class TAligned:
 	"""
+	'Two Aligned'
 	Represents two aligned sequences with some metadata about the alignemnt.
 	"""
 	def __init__(self, seqA, seqB, seqInter, score, identity, gaps, similarity, alignmentType):
@@ -56,8 +57,9 @@ class AlignedSequences:
 
 		
 
-class AlignMatrix:
+class TAlign:
 	"""
+	'Two Align'
 	Represents an alignment matrix, used to determine the alignment score between two sequences
 	"""
 	
@@ -286,8 +288,8 @@ class AlignMatrix:
 		or (self._alignMode == "global" and i==0 and j==0) \
 		or (self._alignMode == "semiglobal" and (i==0 or j==0)):
 			
-			#Create AlignedSequences object as result
-			result = AlignedSequences(Sequence(self._alignSeqA, self._colSeq.getDescription()), \
+			#Create TAligned object as result
+			result = TAligned(Sequence(self._alignSeqA, self._colSeq.getDescription()), \
 			Sequence(self._alignSeqB, self._rowSeq.getDescription()),self._alignInter[::-1], \
 			self._currentAlignScore, identity, gaps, similarity, \
 			self._alignMode + "-suboptimal"*self._isSuboptimal)
