@@ -27,7 +27,7 @@ nameGroups = (
 		("leucine/isoleucine", "xle", "J"),
 		("selenocysteine", "sec", "U"),
 		("pyrrolysine", "pyl", "O"),
-		("undetermined", "und", "X")
+		("undetermined", "xaa", "X")
 	)
 
 class AminoAcid:
@@ -53,7 +53,10 @@ class AminoAcid:
 		self._id = None	#id of the amino acid within the name group
 		
 		if isinstance(aminoAcid, str):
-			self._id = self.__getIdByName(aminoAcid) #id found from aminoAcid name
+			if len(aminoAcid) == 1:
+				self._id = self.__getIdByName(aminoAcid.upper()) #id from short aminoAcid name
+			else:
+				self._id = self.__getIdByName(aminoAcid.lower()) #id from other aminoAcid name
 		elif isinstance(aminoAcid, AminoAcid):
 			self._id = aminoAcid._id #copy of id
 		else:			

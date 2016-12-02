@@ -9,6 +9,7 @@ class TAligned:
 	Represents two aligned sequences with some metadata about the alignemnt.
 	"""
 	def __init__(self, seqA, seqB, seqInter, score, identity, gaps, similarity, alignmentType):
+		assert(len(seqA) == len(seqB))
 		self.seqA = seqA #Aligned sequences
 		self.seqB = seqB
 		self.seqInter = seqInter
