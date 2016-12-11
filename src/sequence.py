@@ -142,7 +142,7 @@ class Sequence:
 	
 	
 	#Sequence modification
-	def insert(self, subSequence, index=0):
+	def insert(self, index, subSequence):
 		"""
 		Inserts subSequence into the Sequence at index 'index' (default is 0).
 		subSequence must be compatible with an AminoAcid list, as specified by __formatAAList.
@@ -156,7 +156,7 @@ class Sequence:
 		"""
 		Same as calling insert at the end of the Sequence.
 		"""
-		self.insert(subSequence, len(self))
+		self.insert(len(self), subSequence)
 		
 			
 	def remove(self, subSequence, startIndex=0):

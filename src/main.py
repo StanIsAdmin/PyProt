@@ -1,9 +1,17 @@
 from aminoacid import AminoAcid
-from sequence import Sequence
-from score import Score
-from talign import TAlign, TAligned
-from malign import MAlign
+from sequence import Sequence, loadFasta
+from score import ScoreMatrix, PSSM
+from align import Align, Aligned
 
-score = Score(r"../resources/blosum/blosum62.iij")
-malign = MAlign(score, sequenceLength=3)
-malign.align(Sequence("ABC"))
+score = ScoreMatrix(r"../resources/blosum/blosum62.iij")
+pssm = PSSM()
+for seq in loadFasta(r"../resources/fasta/msaresults-MUSCLE.fasta"):
+	pssm.add(seq)
+pssm.setGapPenalty(4)
+
+al = Align(pssm)
+
+for toalign in loadFasta(r"../resources/fasta/test.fasta"):
+	for aligned in al.multiAlign(toalign):
+		#print(aligned.getBottomSequence())
+		print(aligned)

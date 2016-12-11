@@ -1,8 +1,8 @@
 from math import log, ceil
 from aminoacid import AminoAcid
 from sequence import Sequence, loadFasta
-from score import Score
-from talign import TAlign, TAligned
+from score import ScoreMatrix
+from align import Align, Aligned
 
 
 def belongs(outSequence, group, minMatches):

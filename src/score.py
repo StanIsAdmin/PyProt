@@ -1,7 +1,9 @@
 from aminoacid import AminoAcid
 from sequence import Sequence
+from math import sqrt, log
 
-class Score:
+
+class ScoreMatrix:
 	"""
 	Represents a scoring matrix, used to determine the score between two Amino Acids
 	"""
@@ -85,3 +87,112 @@ class Score:
 		else:
 			return self._matrix[id2][id1]
 
+			
+# AA frequencies for complete UniProt database
+# from http://web.expasy.org/docs/relnotes/relstat.html, "AMINO ACID COMPOSITION"
+uniprob = {
+	AminoAcid("Ala") : .0826,
+	AminoAcid("Gln") : .0393,
+	AminoAcid("Leu") : .0965,
+	AminoAcid("Ser") : .0660,
+	AminoAcid("Arg") : .0553,
+	AminoAcid("Glu") : .0674,
+	AminoAcid("Lys") : .0582,
+	AminoAcid("Thr") : .0535,
+	AminoAcid("Asn") : .0406,
+	AminoAcid("Gly") : .0708,
+	AminoAcid("Met") : .0241,
+	AminoAcid("Trp") : .0109,
+	AminoAcid("Asp") : .0546,
+	AminoAcid("His") : .0227,
+	AminoAcid("Phe") : .0386,
+	AminoAcid("Tyr") : .0292,
+	AminoAcid("Cys") : .0137,
+	AminoAcid("Ile") : .0593,
+	AminoAcid("Pro") : .0472,
+	AminoAcid("Val") : .0687,
+	
+}			
+
+
+class PSSM:
+	"""
+	Position Specific Score Matrix.
+	Creates a profile for a series of aligned sequences, and gives a score to each AA subsitution in a given column.
+	"""
+	def __init__(self, description=""):
+		self.description=description
+		self.seqCount = 0 #total number of sequences
+		self.size = None #all sequences have the same size
+		self.aaDistribution = None #amino acid distribution
+		self.aaCount = None
+		self.gapPenalties = None
+		
+	
+	def add(self, sequence):
+		#check sequence size
+		if self.size is None:
+			self.size = len(sequence)
+			self.aaDistribution = [{} for i in range(self.size)]
+			self.aaCount = [0 for i in range(self.size)]
+			self.gapPenalties = [0 for i in range(self.size + 1)]
+		
+		assert(len(sequence) == self.size)
+			
+		#update amino acid count for each column
+		for index in range(self.size):
+			if not sequence[index].isGap():
+				self.aaCount[index] += 1
+				try:
+					self.aaDistribution[index][sequence[index]] += 1
+				except:
+					self.aaDistribution[index][sequence[index]] = 1
+		
+		#increase sequence count
+		self.seqCount += 1
+		
+	def getDescription(self):
+		return self.description
+		
+	def getScore(self, aminoAcid, columnIndex):
+		#pseudocounts
+		alpha = self.aaCount[columnIndex] - 1
+		beta = sqrt(self.seqCount)
+		alphaplusbeta = alpha + beta
+
+		#random probability of amino acid
+		try:
+			p_aa = uniprob[aminoAcid]
+		except:
+			p_aa = 0.001
+		
+		#evolutionary probability of amino acid
+		try:
+			f_aa = self.aaDistribution[columnIndex][aminoAcid] / self.seqCount
+		except:
+			f_aa = 0
+			
+		q_aa = (alpha * f_aa + beta * p_aa) / alphaplusbeta
+		
+		return log(q_aa / p_aa)
+	
+	
+	def getGapPenalty(self, columnIndex):
+		return self.gapPenalties[columnIndex]
+	
+	
+	def setGapPenalty(self, penalty, columnIndex=None):
+		if columnIndex is None:
+			for i in range(self.size):
+				self.gapPenalties[i] = penalty
+		else:
+			self.gapPenalties[columnIndex] = penalty
+	
+	def __len__(self):
+		return self.size
+	
+	def __repr__(self):
+		for i in range(self.size):
+			for key, score in self.aaDistribution[i].items():
+				print(key, ": ", score, "(", self.getScore(key, i), ")", sep="",  end=", ")
+			print()
