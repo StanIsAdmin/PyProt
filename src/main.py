@@ -7,7 +7,7 @@ score = ScoreMatrix(r"../resources/blosum/blosum62.iij")
 pssm = PSSM()
 for seq in loadFasta(r"../resources/fasta/msaresults-MUSCLE.fasta"):
 	pssm.add(seq)
-pssm.setGapPenalty(4)
+pssm.setGapPenalty(10)
 
 al = Align(pssm)
 

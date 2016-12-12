@@ -31,15 +31,22 @@ class Aligned:
 		self.seqInter = [] #Sequences separators (.: )
 		self.identity = 0 #Identity (same AAs)
 		self.gaps = 0 #Gap count (either AA is a gap)
+		self.seqAGaps = 0
+		self.seqBGaps = 0
 		self.similarity = 0 #Similarity (positive score between AAs)
 		
 		if self.isMultiple:
 			for aa in self.seqA:
 				if aa.isGap():
 					self.gaps += 1
+					self.seqAGaps += 1
 		else:
 			for aa1, aa2 in zip(self.seqA, self.seqB):
 				if aa1.isGap() or aa2.isGap():
+					if aa1.isGap():
+						self.seqAGaps += 1
+					else:
+						self.seqBGaps += 1
 					self.seqInter.append(" ")
 					self.gaps += 1
 				elif aa1 == aa2:
@@ -50,6 +57,8 @@ class Aligned:
 					self.similarity += 1
 				else:
 					self.seqInter.append(" ")
+		self.seqAEnd = self.seqAStart + len(self.seqA) - self.seqAGaps
+		self.seqBEnd = self.seqBStart + len(self.seqB) - self.seqBGaps
 		
 	def getBottomSequence(self):
 		return self.seqB
@@ -74,10 +83,13 @@ class Aligned:
 		res.append("")
 		if self.isMultiple:
 			res.append("PSSM : " + self.pssmDescription)
-			res.append("Aligned sequence : " + self.seqA.getDescription())
+			res.append("Aligned sequence (" + str(self.seqAStart) + " to " + \
+				str(self.seqAEnd) + ") : " + self.seqA.getDescription())
 		else:
-			res.append("Upper Sequence : " + self.seqA.getDescription())
-			res.append("Lower Sequence : " + self.seqB.getDescription())
+			res.append("Upper sequence (" + str(self.seqAStart) + " to " + \
+				str(self.seqAEnd) + ") : " + self.seqA.getDescription())
+			res.append("Lower sequence (" + str(self.seqBStart) + " to " + \
+				str(self.seqBEnd) + ") : " + self.seqB.getDescription())
 		res.append("")
 		
 		if self.condensed:
@@ -162,7 +174,7 @@ class Align:
 		self._alignedColSeq = None
 	
 	
-	def globalAlign(self, seqA, seqB, iniGapPenalty, extGapPenalty=None, semiGlobal=False, optimalResults=-1):
+	def globalAlign(self, seqA, seqB, iniGapPenalty=1, extGapPenalty=None, semiGlobal=False, resultCount=-1):
 		"""
 		Returns all best global alignment between 'seqA' and 'seqB' with the provided
 		initial and extended gap penalties.
@@ -173,7 +185,7 @@ class Align:
 			self._alignMode = "semiglobal"
 		else:
 			self._alignMode = "global"
-		self._resultCount = optimalResults
+		self._resultCount = resultCount
 		
 		#Initialize all data structures
 		self.__initialize(seqA, seqB, iniGapPenalty, extGapPenalty)
@@ -188,41 +200,53 @@ class Align:
 				yield from self.__align(row, col)
 	
 	
-	def localAlign(self, seqA, seqB, iniGapPenalty, extGapPenalty=None, optimalResults=-1, subOptimalDepth=0):
+	def localAlign(self, seqA, seqB, iniGapPenalty=1, extGapPenalty=None, resultCount=1, subOptimalDepth=0):
 		"""
-		Returns all best local alignment between 'seqA' and 'seqB' with the provided
-		initial and extended gap penalties.
-		If 'subOptimalDepth' is greater than 0, looks for best suboptimal alignments as well.
+		Returns n best local alignment between 'seqA' and 'seqB' with the provided
+		initial and extended gap penalties, where n equals 'resultCount' (-1 for all).
+		If 'subOptimalDepth' equals m, looks for m best suboptimal alignments as well.
 		"""
 		self._alignMode = "local"
-		self._resultCount = optimalResults
 		
 		#Initialize all data structures
 		self.__initialize(seqA, seqB, iniGapPenalty, extGapPenalty)
 		
+		#Number of expected results for each max. score
+		self._resultCount = resultCount
+		
 		#Align in local mode, from the maximum value (optimal)
 		self._currentAlignScore = self._maxAlignScore
 		for row, col in zip(self._maxScoreRows, self._maxScoreCols):
-			yield from self.__align(row, col)
+			yield from self.__align(row, col) #Results
+		
 		
 		#If suboptimal alignments are requested
 		self._subOptimalDepth = 0
 		while subOptimalDepth != 0:
 			self._isSuboptimal = True
+			subOptimalDepth -= 1
 			self._subOptimalDepth += 1
-			self._resultCount = optimalResults
+			
 			self.__clearBestPath() #Reevalute scores with best alignment reset to 0
-			self._currentAlignScore = self._maxAlignScore
+			
+			#Number of expected results for each max. score
+			self._resultCount = resultCount
+			
 			#Align in local mode, from the new maximum value (sub-optimal)
+			self._currentAlignScore = self._maxAlignScore
 			for row, col in zip(self._maxScoreRows, self._maxScoreCols):
 				yield from self.__align(row, col)
-			subOptimalDepth -= 1
 	
 	
-	def multiAlign(self, sequence, optimalResults=1, subOptimalDepth=10):
+	def multiAlign(self, sequence, resultCount=1, subOptimalDepth=3):
+		"""
+		Returns n best local M.S.A. of 'sequence' against the ScoreMatrix (which must be 
+		position-specific and provide gap penalties) where n equals 'resultCount' (-1 for all).
+		If 'subOptimalDepth' equals m, looks for m best suboptimal alignments as well.
+		"""
 		self._isMultiple = True
 		colSeq = [i for i in range(len(self._scoreMatrix))]
-		yield from self.localAlign(colSeq, sequence, 0, None, optimalResults, subOptimalDepth)
+		yield from self.localAlign(colSeq, sequence, 0, None, resultCount, subOptimalDepth)
 		
 		
 	
@@ -260,34 +284,41 @@ class Align:
 		
 		#Matrices
 		self._alignMatrix = [[0 for i in range(len(self._colSeq)+1)] \
-								for j in range(len(self._rowSeq)+1)]
+			for j in range(len(self._rowSeq)+1)]
 		self._rowGapMatrix = deepcopy(self._alignMatrix)
 		self._colGapMatrix = deepcopy(self._alignMatrix)
 		
 		self._originMatrix = [["" for i in range(len(self._colSeq)+1)] \
-								for j in range(len(self._rowSeq)+1)]
+			for j in range(len(self._rowSeq)+1)]
 		
 		#Global alignment : first line and colunm have initial scores and origins
 		if self._alignMode== "global":
-			for i in range(1, max(len(self._colSeq), len(self._rowSeq))+1):	
-				val = self._iniGapPenalty + self._extGapPenalty*(i-1)
-				if i <= len(self._colSeq): #First row
-					self._alignMatrix[0][i] = val
-					self._rowGapMatrix[0][i] = val 
-					self._colGapMatrix[0][i] = val
-					self._originMatrix[0][i] = "L" #Origin is left
-				
-				if i <= len(self._rowSeq): #First column
-					self._alignMatrix[i][0] = val
-					self._rowGapMatrix[i][0] = val 
-					self._colGapMatrix[i][0] = val
-					self._originMatrix[i][0] = "T" #Origin is top					
+			self.__initAlignValues()
 			
 		
 		#Fill all matrices
 		for row in range(1, len(self._rowSeq)+1):
 			for col in range(1, len(self._colSeq)+1):
 				self.__fill(row, col)
+				
+		#Find best scores
+		self.__findBestScore()
+	
+		
+	def __initAlignValues(self):
+		for i in range(1, max(len(self._colSeq), len(self._rowSeq))+1):	
+			val = self._iniGapPenalty + self._extGapPenalty*(i-1)
+			if i <= len(self._colSeq): #First row
+				self._alignMatrix[0][i] = val
+				self._rowGapMatrix[0][i] = val 
+				self._colGapMatrix[0][i] = val
+				self._originMatrix[0][i] = "L" #Origin is left
+			
+			if i <= len(self._rowSeq): #First column
+				self._alignMatrix[i][0] = val
+				self._rowGapMatrix[i][0] = val 
+				self._colGapMatrix[i][0] = val
+				self._originMatrix[i][0] = "T" #Origin is top	
 	
 	
 	def __fill(self, row, col):
@@ -321,15 +352,6 @@ class Align:
 			self._alignMatrix[row][col] = maxScore = max(insertScore, deleteScore, matchScore, 0)
 		else: #Global alignment
 			self._alignMatrix[row][col] = maxScore = max(insertScore, deleteScore, matchScore)
-			
-		#Max alignment scores
-		if maxScore > self._maxAlignScore: #New max alignment
-			self._maxAlignScore = maxScore
-			self._maxScoreRows = [row]
-			self._maxScoreCols = [col]
-		elif maxScore == self._maxAlignScore: #Same max alignment
-			self._maxScoreRows.append(row)
-			self._maxScoreCols.append(col)
 			
 		#Origin matrix
 		if insertScore == maxScore:
@@ -365,6 +387,23 @@ class Align:
 					self._originMatrix[row][furtherCol] = ""
 					self.__fill(row, furtherCol)
 		self._bestAlignPath = []
+		self.__findBestScore()
+		
+		
+	def __findBestScore(self):
+		self._maxAlignScore = -1
+		self._maxScoreCols = []
+		self._maxScoreRows = []
+		for row in range(1, len(self._rowSeq)+1):
+			for col in range(1, len(self._colSeq)+1):
+				score = self._alignMatrix[row][col]
+				if score > self._maxAlignScore: #New max alignment
+					self._maxAlignScore = score
+					self._maxScoreRows = [row]
+					self._maxScoreCols = [col]
+				elif score == self._maxAlignScore: #Same max alignment
+					self._maxScoreRows.append(row)
+					self._maxScoreCols.append(col)
 					
 	
 	def __align(self, i, j):
