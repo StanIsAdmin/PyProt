@@ -4,10 +4,10 @@ from score import ScoreMatrix, PSSM
 from align import Align, Aligned
 
 score = ScoreMatrix(r"../resources/blosum/blosum62.iij")
-pssm = PSSM()
+pssm = PSSM("WW domain")
 for seq in loadFasta(r"../resources/fasta/msaresults-MUSCLE.fasta"):
 	pssm.add(seq)
-pssm.setGapPenalty(10)
+pssm.setGapPenalty(4)
 
 al = Align(pssm)
 

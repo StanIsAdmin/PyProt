@@ -14,6 +14,7 @@ class Aligned:
 		self.seqB = seqB if isinstance(seqA, Sequence) else seqA
 		self.seqAStart = seqAStart if isinstance(seqA, Sequence) else seqBStart
 		self.seqBStart = seqBStart if isinstance(seqA, Sequence) else seqAStart
+		self.size = len(self.seqA)
 		
 		self.alignType = alignType #Options used for alignemnt
 		self.alignScore = round(alignScore, 2) #Score of alignment
@@ -72,6 +73,7 @@ class Aligned:
 			res.append("---------- Multi-Seq. Alignment ----------")
 		else:
 			res.append("---------- Alignment ----------")
+		res.append("Size       : " + str(self.size))
 		res.append("Type       : " + self.alignType)
 		res.append("Score      : " + str(self.alignScore))
 		if not self.isMultiple:
@@ -83,13 +85,16 @@ class Aligned:
 		res.append("")
 		if self.isMultiple:
 			res.append("PSSM : " + self.pssmDescription)
-			res.append("Aligned sequence (" + str(self.seqAStart) + " to " + \
-				str(self.seqAEnd) + ") : " + self.seqA.getDescription())
+			res.append("Aligned seq. : " + self.seqA.getDescription())
+			res.append("\t" + str(self.seqAGaps) + " Gaps, " + str(self.size-self.seqAGaps) + \
+				" AAs (positions " + str(self.seqAStart) + " to " + str(self.seqAEnd) + ")")
 		else:
-			res.append("Upper sequence (" + str(self.seqAStart) + " to " + \
-				str(self.seqAEnd) + ") : " + self.seqA.getDescription())
-			res.append("Lower sequence (" + str(self.seqBStart) + " to " + \
-				str(self.seqBEnd) + ") : " + self.seqB.getDescription())
+			res.append("Upper seq. : " + self.seqA.getDescription())
+			res.append("\t" + str(self.seqAGaps) + " Gaps, " + str(self.size-self.seqAGaps) + \
+				" AAs (positions " + str(self.seqAStart) + " to " + str(self.seqAEnd) + ")")
+			res.append("Lower seq. : " + self.seqB.getDescription())
+			res.append("\t" + str(self.seqBGaps) + " Gaps, " + str(self.size-self.seqBGaps) + \
+				" AAs (positions " + str(self.seqBStart) + " to " + str(self.seqBEnd) + ")")
 		res.append("")
 		
 		if self.condensed:
@@ -100,7 +105,7 @@ class Aligned:
 		seqAPos, seqBPos = self.seqAStart, self.seqBStart
 		seqANextPos, seqBNextPos = seqAPos, seqBPos
 		
-		for index in range(len(self.seqA)):
+		for index in range(self.size):
 			a = self.seqA[index]
 			if not a.isGap():
 				seqANextPos += 1
@@ -323,7 +328,7 @@ class Align:
 	
 	def __fill(self, row, col):
 		"""
-		Calculates the score for value at row 'row' and column 'col'.
+		Calculates the score for matrix values at row 'row' and column 'col'.
 		"""
 		#Row gap matrix
 		if self._isMultiple:
@@ -367,25 +372,23 @@ class Align:
 		Resets all scores from the first best alignment and then reevaluates the affected scores.
 		A new maximum score will be found from these, allowing for new alignment lookups.
 		"""
-		self._maxAlignScore = 0 #New maximum will be found from modified values
-		self._maxScoreRows = []
-		self._maxScoreCols = []
 		self._allAlignPaths.extend(self._bestAlignPath)
-		for row, col in self._bestAlignPath[::-1]: #Reverse best align path
+		
+		#Clear scores from best align path
+		for row, col in self._bestAlignPath:
 			self._alignMatrix[row][col] = 0 #Reset scores
 			self._colGapMatrix[row][col] = 0
 			self._rowGapMatrix[row][col] = 0
-			
-			#Reevaluate scores for further rows and columns
-			for furtherRow in range(row+1, len(self._rowSeq)+1):
-				if (furtherRow, col) not in self._allAlignPaths: #Only if not part of best path
-					self._originMatrix[furtherRow][col] = ""
-					self.__fill(furtherRow, col)
-			
-			for furtherCol in range(col+1, len(self._colSeq)+1):
-				if (row, furtherCol) not in self._allAlignPaths:
-					self._originMatrix[row][furtherCol] = ""
-					self.__fill(row, furtherCol)
+			self._originMatrix[row][col] = ""
+		
+		#Reevaluate scores for further rows and columns (affected values)
+		row, col = self._bestAlignPath[-1]
+		for furtherRow in range(row, len(self._rowSeq)+1):		
+			for furtherCol in range(col, len(self._colSeq)+1):
+				if (furtherRow, furtherCol) not in self._allAlignPaths:
+					self._originMatrix[furtherRow][furtherCol] = ""
+					self.__fill(furtherRow, furtherCol)
+		
 		self._bestAlignPath = []
 		self.__findBestScore()
 		
