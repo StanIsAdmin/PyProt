@@ -39,10 +39,12 @@ class DSSP:
 						self.identifier = line.split()[-2]
 						
 					elif line.startswith("COMPND"):
-						self.protein = line.split(":")[1].split(";")[0]
+						self.protein = line.split(":")[1].split(";")[0].strip()
+						self.protein = " ".join(self.protein.split())
 						
 					elif line.startswith("SOURCE"):
-						self.organism = line.split(":")[1].split(";")[0]
+						self.organism = line.split(":")[1].split(";")[0].strip()
+						self.organism = " ".join(self.organism.split())
 						
 				
 	
