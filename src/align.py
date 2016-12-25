@@ -1,13 +1,12 @@
 from copy import deepcopy
 from aminoacid import AminoAcid
 from sequence import Sequence, loadFasta
-from score import ScoreMatrix, PSSM
 
 class Aligned:
 	"""
 	Represents two aligned sequences with some metadata about the alignemnt.
 	"""
-	def __init__(self, seqA, seqB, seqAStart, seqBStart, alignType, alignScore, scoreMatrix):
+	def __init__(self, seqA, seqB, seqAStart, seqBStart, alignType, alignScore, scoreMatrix, isMultiple=False):
 		assert(len(seqA) == len(seqB))
 		#seqA is always a Sequence, seqB can be a list of ints (if MSA)
 		self.seqA = seqA if isinstance(seqA, Sequence) else seqB
@@ -19,10 +18,9 @@ class Aligned:
 		self.alignType = alignType #Options used for alignemnt
 		self.alignScore = round(alignScore, 2) #Score of alignment
 		
-		self.isMultiple = False #Is this a M.S.A ?
+		self.isMultiple = isMultiple #Is this a M.S.A ?
 		self.pssmDescription = None
-		if isinstance(scoreMatrix, PSSM):
-			self.isMultiple = True
+		if self.isMultiple:
 			self.pssmDescription = scoreMatrix.getDescription()
 		
 		self.condensed = False #When true, aligned sequences are not displayed
@@ -430,11 +428,11 @@ class Align:
 			if self._isMultiple:
 				result = Aligned(self._alignedColSeq, \
 					Sequence(self._alignedRowSeq, self._rowSeq.getDescription()), j, i, \
-					alignDescription, self._currentAlignScore, self._scoreMatrix)
+					alignDescription, self._currentAlignScore, self._scoreMatrix, True)
 			else:
 				result = Aligned(Sequence(self._alignedColSeq, self._colSeq.getDescription()), \
 					Sequence(self._alignedRowSeq, self._rowSeq.getDescription()), j, i, \
-					alignDescription, self._currentAlignScore, self._scoreMatrix)
+					alignDescription, self._currentAlignScore, self._scoreMatrix, False)
 			
 			#Remember first best alignment for subobtimal lookup
 			if self._bestAlignPath == []:
