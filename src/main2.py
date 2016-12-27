@@ -1,7 +1,6 @@
 from dssp import DSSP
 from structure import GOR3
 
-"""
 with open(r"../resources/dataset/CATH_info.txt") as infoFile:
 	with open(r"../resources/dataset/CATH_info-PARSED.txt", 'w') as outFile:
 		for line in infoFile.readlines():
@@ -19,7 +18,6 @@ with open(r"../resources/dataset/CATH_info_test.txt") as infoFile:
 			seq, struct = d.getSequenceStructure(line[4])
 			
 			outFile.writelines(l + "\n" for l in [description,seq,struct])
-"""
 
 p = GOR3()
 
