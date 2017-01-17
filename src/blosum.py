@@ -166,7 +166,7 @@ def blosumFromProbabilities(probPairs, probSingle, requiredIdentityPercent):
 	of AA pairs and singletons provided in 'probPairs' and 'probSingle'.
 	"""
 	#Create empty Score, ignoring AAs B,Z,J,U,O
-	scoreMatrix = Score("", "BLOSUM{}".format(requiredIdentityPercent), "BZJUO")
+	scoreMatrix = ScoreMatrix("", "BLOSUM{}".format(requiredIdentityPercent), "BZJUO")
 	
 	for key, qAB in probPairs.items():
 		#qAB is the evolutionary probability of the AA pair (A,B)

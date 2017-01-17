@@ -1,4 +1,7 @@
-from math import log
+import matplotlib
+import matplotlib.pyplot as pyplot
+import numpy as np
+from math import log, sqrt
 from aminoacid import AminoAcid
 
 
@@ -11,6 +14,11 @@ class GOR3:
 
 	def __init__(self):
 		self.structures = "HETC"
+		self.roc = {(s, r):0 for s in self.structures for r in ("TP", "TN", "FP", "FN")}
+		self.minScore, self.maxScore = 0, 0
+		self.scores = {(classifier, realS):[] for classifier in self.structures for realS in self.structures}
+		self.correctPred = 0
+		self.totalPred = 0
 		self.neighbourOffset = 8
 		
 		self.trainings = 0 #Number of trainings (one per AA)
@@ -39,7 +47,7 @@ class GOR3:
 				self.tripletCount[(curStructure, curAminoacid, neiAminoacid)] += 1
 	
 	
-	def predict(self, sequence):
+	def predict(self, sequence, realStructure=None):
 		"""
 		Returns the predicted structure of 'sequence', based on received training.
 		"""
@@ -63,7 +71,12 @@ class GOR3:
 					predScore = curScore
 					
 			structure.append(predStructure)
-		return "".join(structure)
+		structure = "".join(structure)
+		
+		if not realStructure is None:
+			self.__quality(sequence, structure, realStructure)
+		
+		return structure
 		
 	
 	def __getScore(self, sequence, index, struct):
@@ -110,3 +123,71 @@ class GOR3:
 		for s in self.structures:
 			if s != exclude:
 				yield s
+	
+	
+	def __quality(self, sequence, structure, reality):
+		self.totalPred += len(structure) #Total predictions
+		self.correctPred += sum([1 if s==r else 0 for s,r in zip(structure, reality)]) #Correct predictions
+		for index in range(len(sequence)):
+			scores = [self.__getScore(sequence, index, classifier) for classifier in self.structures]
+			maxScore = max(scores)
+			for classifier, score in zip(self.structures, scores):
+				realS = reality[index]
+				self.scores[(classifier, realS)].append(score)
+				self.minScore = score if score < self.minScore else self.minScore
+				self.maxScore = score if score > self.maxScore else self.maxScore
+				if score == maxScore: #Positive
+					if classifier == realS: #True
+						self.roc[(classifier, "TP")] += 1
+					else: #False
+						self.roc[(classifier, "FP")] += 1
+				else: #Negative
+					if classifier != realS: #True
+						self.roc[(classifier, "TN")] += 1
+					else: #False
+						self.roc[(classifier, "FN")] += 1
+	
+	
+	def getQuality(self):
+		tp = sum([self.roc[(c, "TP")] for c in self.structures])
+		tn = sum([self.roc[(c, "TN")] for c in self.structures])
+		fp = sum([self.roc[(c, "FP")] for c in self.structures])
+		fn = sum([self.roc[(c, "FN")] for c in self.structures])
+		mcc = (tp*tn - fp*fn) / sqrt((tp+fp)*(tp+fn)*(tn+fp)*(tn+fn))
+		q3 = self.correctPred / self.totalPred
+		return q3, mcc
+	
+	
+	def plotROC(self):
+		for classifier in self.structures:
+			x, y = [], []
+			for threshold in np.arange(self.minScore,self.maxScore,0.1):
+				tp, tn, fp, fn = 0, 0, 0, 0
+				for realS in self.structures:
+					for score in self.scores[(classifier, realS)]:
+						if score >= threshold: #Positive
+							if classifier == realS: #True
+								tp += 1
+							else: #False
+								fp += 1
+						else: #Negative
+							if classifier != realS: #True
+								tn += 1
+							else: #False
+								fn += 1
+				tpr = tp / (tp + fn)
+				fpr = fp / (tn + fp)
+				x.append(fpr)
+				y.append(tpr)
+			print("----- Receiver Operating Characteristic Curve -----")
+			print("Classifier:", classifier)
+			x.sort()
+			y.sort()
+			auc = np.trapz(y,x) #Area Under Curve
+			print("AUC:", auc)
+			pyplot.title("Classifier " + classifier)
+			pyplot.xlabel('False Positive Rate')
+			pyplot.ylabel('True Positive Rate')
+			pyplot.plot([0,1],[0,1])
+			pyplot.plot(x,y)
+			pyplot.show()
