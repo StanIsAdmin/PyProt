@@ -1,6 +1,5 @@
 from math import sqrt, log, ceil
-from aminoacid import AminoAcid
-from sequence import Sequence, loadFasta
+from protein import AminoAcid, Sequence, loadFasta
 
 
 class ScoreMatrix:

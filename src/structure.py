@@ -2,7 +2,7 @@ import matplotlib
 import matplotlib.pyplot as pyplot
 import numpy as np
 from math import log, sqrt
-from aminoacid import AminoAcid
+from protein import AminoAcid
 
 
 class DSSP:

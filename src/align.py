@@ -1,6 +1,5 @@
 from copy import deepcopy
-from aminoacid import AminoAcid
-from sequence import Sequence, loadFasta
+from protein import AminoAcid, Sequence, loadFasta
 
 
 class Aligned:
