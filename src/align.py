@@ -2,6 +2,7 @@ from copy import deepcopy
 from aminoacid import AminoAcid
 from sequence import Sequence, loadFasta
 
+
 class Aligned:
 	"""
 	Represents two aligned sequences with some metadata about the alignemnt.

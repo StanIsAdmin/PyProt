@@ -1,6 +1,7 @@
 from copy import deepcopy
 from aminoacid import AminoAcid
 
+
 class Sequence:
 	"""
 	Represents a sequence of amino acids.
