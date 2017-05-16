@@ -1,5 +1,6 @@
 from copy import deepcopy
-from pyprot.protein import AminoAcid, Sequence, loadFasta
+
+from pyprot.protein import Sequence
 
 
 class Aligned:
@@ -459,7 +460,7 @@ class Align:
     # Representation
     def __repr__(self):
         """
-        Representation of the alignemnt matrix.
+        Representation of the alignment matrix.
         """
         if self._colSeq is None:
             return "No alignment done yet"
