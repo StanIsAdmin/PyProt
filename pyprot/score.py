@@ -1,5 +1,5 @@
 from math import sqrt, log, ceil
-from protein import AminoAcid, Sequence, loadFasta
+from pyprot.protein import AminoAcid, Sequence, loadFasta
 
 
 class ScoreMatrix:
