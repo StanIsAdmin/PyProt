@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from pyprot.protein import AminoAcid
+from pyprot.protein.aminoacid import AminoAcid
 
 
 class TestAminoAcid(TestCase):
