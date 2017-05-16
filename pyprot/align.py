@@ -4,8 +4,8 @@ from pyprot.protein import AminoAcid, Sequence, loadFasta
 
 class Aligned:
     """
-	Represents two aligned sequences with some metadata about the alignemnt.
-	"""
+    Represents two aligned sequences with some metadata about the alignemnt.
+    """
 
     def __init__(self, seqA, seqB, seqAStart, seqBStart, alignType, alignScore, scoreMatrix, isMultiple=False):
         assert (len(seqA) == len(seqB))
@@ -65,8 +65,8 @@ class Aligned:
 
     def __repr__(self):
         """
-		Object representation.
-		"""
+        Object representation.
+        """
         res = []
         if self.isMultiple:
             res.append("---------- Multi-Seq. Alignment ----------")
@@ -139,13 +139,13 @@ class Aligned:
 
 class Align:
     """
-	Represents an alignment matrix, used to determine the alignment score between two sequences
-	"""
+    Represents an alignment matrix, used to determine the alignment score between two sequences
+    """
 
     def __init__(self, scoreMatrix):
         """
-		Creates an AlignMatrix object that uses scoreMatrix as a scoring system between amino acids.
-		"""
+        Creates an AlignMatrix object that uses scoreMatrix as a scoring system between amino acids.
+        """
         self._scoreMatrix = scoreMatrix  # scoring matrix to use
 
         self._colSeq = None  # copies of sequences to align
@@ -179,11 +179,11 @@ class Align:
 
     def globalAlign(self, seqA, seqB, iniGapPenalty=1, extGapPenalty=None, semiGlobal=False, resultCount=-1):
         """
-		Returns all best global alignment between 'seqA' and 'seqB' with the provided
-		initial and extended gap penalties.
-		If 'semiGlobal' is True, allows alignment to discard the start and end of either sequence.
-		(this allows for better alignments when sequences overlap only partially)
-		"""
+        Returns all best global alignment between 'seqA' and 'seqB' with the provided
+        initial and extended gap penalties.
+        If 'semiGlobal' is True, allows alignment to discard the start and end of either sequence.
+        (this allows for better alignments when sequences overlap only partially)
+        """
         if semiGlobal:
             self._alignMode = "semiglobal"
         else:
@@ -204,10 +204,10 @@ class Align:
 
     def localAlign(self, seqA, seqB, iniGapPenalty=1, extGapPenalty=None, resultCount=1, subOptimalDepth=0):
         """
-		Returns n best local alignment between 'seqA' and 'seqB' with the provided
-		initial and extended gap penalties, where n equals 'resultCount' (-1 for all).
-		If 'subOptimalDepth' equals m, looks for m best suboptimal alignments as well.
-		"""
+        Returns n best local alignment between 'seqA' and 'seqB' with the provided
+        initial and extended gap penalties, where n equals 'resultCount' (-1 for all).
+        If 'subOptimalDepth' equals m, looks for m best suboptimal alignments as well.
+        """
         self._alignMode = "local"
 
         # Initialize all data structures
@@ -240,18 +240,18 @@ class Align:
 
     def multiAlign(self, sequence, resultCount=1, subOptimalDepth=3):
         """
-		Returns n best local M.S.A. of 'sequence' against the ScoreMatrix (which must be 
-		position-specific and provide gap penalties) where n equals 'resultCount' (-1 for all).
-		If 'subOptimalDepth' equals m, looks for m best suboptimal alignments as well.
-		"""
+        Returns n best local M.S.A. of 'sequence' against the ScoreMatrix (which must be 
+        position-specific and provide gap penalties) where n equals 'resultCount' (-1 for all).
+        If 'subOptimalDepth' equals m, looks for m best suboptimal alignments as well.
+        """
         self._isMultiple = True
         colSeq = [i for i in range(len(self._scoreMatrix))]
         yield from self.localAlign(colSeq, sequence, 0, None, resultCount, subOptimalDepth)
 
     def __initialize(self, seqA, seqB, iniGapPenalty, extGapPenalty):
         """
-		Sets all initial values for required data structures.
-		"""
+        Sets all initial values for required data structures.
+        """
         # Sequences
         if len(seqA) == 0 or len(seqB) == 0:
             raise ValueError("Sequences to align cannot be empty")
@@ -318,8 +318,8 @@ class Align:
 
     def __fill(self, row, col):
         """
-		Calculates the score for matrix values at row 'row' and column 'col'.
-		"""
+        Calculates the score for matrix values at row 'row' and column 'col'.
+        """
         # Row gap matrix
         if self._isMultiple:
             self._rowGapMatrix[row][col] = self._scoreMatrix.getGapPenalty(col)
@@ -358,9 +358,9 @@ class Align:
 
     def __clearBestPath(self):
         """
-		Resets all scores from the first best alignment and then reevaluates the affected scores.
-		A new maximum score will be found from these, allowing for new alignment lookups.
-		"""
+        Resets all scores from the first best alignment and then reevaluates the affected scores.
+        A new maximum score will be found from these, allowing for new alignment lookups.
+        """
         self._allAlignPaths.extend(self._bestAlignPath)
 
         # Clear scores from best align path
@@ -398,8 +398,8 @@ class Align:
 
     def __align(self, i, j):
         """
-		Yields all best alignments starting from row i and column j.
-		"""
+        Yields all best alignments starting from row i and column j.
+        """
         if self._resultCount == 0:
             return
 
@@ -459,8 +459,8 @@ class Align:
     # Representation
     def __repr__(self):
         """
-		Representation of the alignemnt matrix.
-		"""
+        Representation of the alignemnt matrix.
+        """
         if self._colSeq is None:
             return "No alignment done yet"
 
