@@ -5,8 +5,8 @@
 Here is an overview of the libraries and the tools they contain (classes in `CamelCase` and functions in `camelCase`):
 - `protein` provides tools to represent amino acids as well as sequences of amino acids (i.e. proteins)
  - `AminoAcid` represents a single, possibly undetermined amino acid or gap from the `aminoAcidNames` tuple
- - `Sequence` represents a protein and can be manipulated as a python list
- - `loadFasta` parses `.fasta` files and generates the resulting `Sequence` objects
+ - `Protein` represents a protein and can be manipulated as a python list
+ - `loadFasta` parses `.fasta` files and generates the resulting `Protein` objects
 - `score` implements scoring systems for substitutions between amino acids
  - `ScoreMatrix` is a standard substitution-based score matrix
  - `PSSM` is a position-specific score matrix

@@ -217,7 +217,7 @@ def makeGroupsFromFasta(path, requiredIdentityPercent):
     """
     Loads Sequences from file at 'path' and separate them in groups with an identity of 
     at least 'requiredIdentityPercent'.
-    Returns a list representing the groups as lists of Sequence objects.
+    Returns a list representing the groups as lists of Protein objects.
     """
     sequences = [seq for seq in loadFasta(path)]
     groups = [[sequences[0]]]  # First sequence is assigned to first group
@@ -249,7 +249,7 @@ def makeGroupsFromFasta(path, requiredIdentityPercent):
 
 def valueDictsFromGroups(groups):
     """
-    Transforms each group from 'groups' into a list of dictionaries, one for each Sequence column.
+    Transforms each group from 'groups' into a list of dictionaries, one for each Protein column.
     The dictionaries map each AminoAcid found in that column to their count.
     Returns the list of dictionaries and a list of the size (in Sequences) of their groups.
     """

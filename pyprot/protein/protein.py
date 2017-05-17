@@ -3,16 +3,16 @@ from copy import deepcopy
 from pyprot.protein.aminoacid import AminoAcid
 
 
-class Sequence:
+class Protein:
     """
     Represents a sequence of amino acids.
     """
 
     def __init__(self, aminoAcids=None, description=""):
         """
-        Creates a Sequence object that represents the amino acid sequence contained in aminoAcids.
+        Creates a Protein object that represents the amino acid sequence contained in aminoAcids.
         aminoAcids can be one of the following :
-        - None, meaning the Sequence is empty (default)
+        - None, meaning the Protein is empty (default)
         - an AminoAcid object
         - a string of X AminoAcid short (uppercase) names or 1 AminoAcid name
         - a list containing AminoAcid objects and/or strings of individual AminoAcid names
@@ -21,7 +21,7 @@ class Sequence:
         self._nameMode = "short"  # the way in which AA names are displayed
         self._separator = ""  # how to separate AA names when displayed
         self._description = description  # description of the sequence
-        if self._description == "" and isinstance(aminoAcids, Sequence):
+        if self._description == "" and isinstance(aminoAcids, Protein):
             self._description = aminoAcids.getDescription()
 
         # Format aminoAcids into a list of AminoAcid objects.
@@ -31,11 +31,11 @@ class Sequence:
     def __formatAAList(aminoAcids):
         """Formats 'aminoAcids' into a list of AminoAcid objects."""
 
-        # Sequence object's aaList is deep copied
-        if isinstance(aminoAcids, Sequence):
+        # Protein object's aaList is deep copied
+        if isinstance(aminoAcids, Protein):
             return deepcopy(aminoAcids._aaList)
 
-        # None becomes an empty Sequence
+        # None becomes an empty Protein
         elif aminoAcids is None:
             return []
 
@@ -56,7 +56,7 @@ class Sequence:
 
         # No more supported types
         else:
-            raise TypeError("aminoAcids must be a Sequence, list, AminoAcid object, string or None")
+            raise TypeError("aminoAcids must be a Protein, list, AminoAcid object, string or None")
 
     # Size and comparison
     def __len__(self):
@@ -110,9 +110,9 @@ class Sequence:
 
     # Item and slice manipulation
     def __getitem__(self, key):
-        """Return a Sequence object containing copies of the items from the slice"""
+        """Return a Protein object containing copies of the items from the slice"""
         if isinstance(key, slice):
-            return Sequence([self._aaList[index] for index in range(*key.indices(len(self)))])
+            return Protein([self._aaList[index] for index in range(*key.indices(len(self)))])
         else:
             try:
                 return self._aaList[key]  # Return the item of index 'key'
@@ -141,10 +141,10 @@ class Sequence:
             except:
                 raise ValueError("key does not represent an index or slice")
 
-    # Sequence modification
+    # Protein modification
     def insert(self, index, subSequence):
         """
-        Inserts subSequence into the Sequence at index 'index' (default is 0).
+        Inserts subSequence into the Protein at index 'index' (default is 0).
         subSequence must be compatible with an AminoAcid list, as specified by __formatAAList.
         """
         # We need a formatted sequence
@@ -154,7 +154,7 @@ class Sequence:
 
     def extend(self, subSequence):
         """
-        Same as calling insert at the end of the Sequence.
+        Same as calling insert at the end of the Protein.
         """
         self.insert(len(self), subSequence)
 
@@ -185,7 +185,7 @@ class Sequence:
     # Lookup
     def __contains__(self, item):
         """
-        Returns True if item is contained in Sequence, False if not.
+        Returns True if item is contained in Protein, False if not.
         """
         return item in self._aaList
 
@@ -205,21 +205,3 @@ class Sequence:
                 return i
 
         return False
-
-
-def loadFasta(path):
-    """
-    Loads the FASTA file located in 'path' and yields the Sequences it contains.
-    """
-    with open(path, 'r') as fastaFile:
-        newSequence = None
-        for line in fastaFile:
-            line_s = line.strip()
-            if line_s != "" and line_s[0] == ">":
-                if newSequence is not None:
-                    yield newSequence
-                newSequence = Sequence(None, line_s[1:])
-            else:
-                newSequence.extend(line_s)
-        if len(newSequence) > 0:
-            yield newSequence
