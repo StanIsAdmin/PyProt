@@ -1,11 +1,10 @@
 from copy import deepcopy
 
 AA_NAMES = (
-    ("none/gap", "gap", "-"),
     ("alanine", "ala", "A"),
     ("cysteine", "cys", "C"),
-    ("aspartic acid", "asp", "D"),
-    ("glutamic acid", "glu", "E"),
+    ("aspartate", "asp", "D"),
+    ("glutamate", "glu", "E"),
     ("phenylalanine", "phe", "F"),
     ("glycine", "gly", "G"),
     ("histidine", "his", "H"),
@@ -22,19 +21,30 @@ AA_NAMES = (
     ("valine", "val", "V"),
     ("tryptophan", "trp", "W"),
     ("tyrosine", "tyr", "Y"),
-    ("asparagine/aspartic acid", "asx", "B"),
-    ("glutamine/glutamic acid", "glx", "Z"),
-    ("leucine/isoleucine", "xle", "J"),
     ("selenocysteine", "sec", "U"),
     ("pyrrolysine", "pyl", "O"),
-    ("undetermined", "xaa", "X")
+    ("asparagine/aspartate", "asx", "B"),
+    ("glutamine/glutamate", "glx", "Z"),
+    ("leucine/isoleucine", "xle", "J"),
+    ("undetermined", "xaa", "X"),
+    ("gap", "gap", "-"),
+    ("termination", "term", "|")
 )
+
+AA_NAMES_CLASSIC_RANGE = (0, 20)
+AA_NAMES_EXTENDED_RANGE = (0, 26)
+AA_NAMES_GAP_INDEX = 26
+AA_NAMES_TERM_INDEX = 27
 
 
 class AminoAcid:
     """
     Represents one of the amino acids that can be found in genetic sequences.
-    Can be one of the twenty-two amino acids, four undetermined combinations of possible amino acids, and gaps.
+    Can be one of the following :
+    - any of the twenty amino acids
+    - any of four combinations of possible amino acids
+    - selenocysteine, pyrrolysine, a gap or termination codon
+    The full list of possible amino acids is defined by AA_NAMES.
     """
 
     # Dictionary mapping name to id
@@ -45,8 +55,8 @@ class AminoAcid:
 
     def __init__(self, aminoAcid):
         """
-        Creates an AminoAcid object representing one of the possible Amino Acids.
-        aminoAcid can be the name of an amino acid, or an AminoAcid object (in which case a copy is created).
+        Creates an AminoAcid object representing one of the possible amino acids.
+        @param aminoAcid can be the name of an amino acid, or an AminoAcid object (in which case a copy is created).
         """
         self._id = None  # id of the amino acid within the name group
 
@@ -68,22 +78,36 @@ class AminoAcid:
             raise ValueError("Could not find amino acid name {}".format(name))
 
     @staticmethod
-    def getAllNames(nameMode=_defaultNameMode):
+    def __getNameModeIndex(nameMode):
         try:
-            nameIndex = AminoAcid._nameModes[nameMode]  # get index of name mode
+            return AminoAcid._nameModes[nameMode]  # get index of name mode
         except:
             raise TypeError("nameMode must be 'short', 'medium' or 'long'")
 
-        for aa in AA_NAMES[1:]:  # we exclude the gap (first item)
-            yield aa[nameIndex]
+    @staticmethod
+    def getNames(nameMode=_defaultNameMode):
+        """Yields the names of the 20 basic amino acids."""
+        yield from AminoAcid.getNamesInRange(*AA_NAMES_CLASSIC_RANGE, nameMode)
 
-    # Representation
-    def __repr__(self):
-        nameIndex = AminoAcid._nameModes[self._defaultNameMode]
-        return AA_NAMES[self._id][nameIndex]  # default name mode
+    @staticmethod
+    def getAllNames(nameMode=_defaultNameMode):
+        """Yields the names of all represented amino acids, excepting gaps and termination codons."""
+        yield from AminoAcid.getNamesInRange(*AA_NAMES_EXTENDED_RANGE, nameMode)
 
-    def __str__(self):
-        return self.getName()  # default name mode
+    @staticmethod
+    def getNamesInRange(startIndex, stopIndex, nameMode=_defaultNameMode):
+        """Yields the names of amino acids in AA_NAMES, from startIndex to stopIndex (excluded)."""
+        nameModeIndex = AminoAcid.__getNameModeIndex(nameMode)
+        for aa in AA_NAMES[startIndex:stopIndex]:
+            yield aa[nameModeIndex]
+
+    def isGap(self):
+        """True if this amino acid is a gap, false otherwise."""
+        return self._id == AA_NAMES_GAP_INDEX
+
+    def isTermination(self):
+        """True if this amino acid is a termination codon, false otherwise."""
+        return self._id == AA_NAMES_TERM_INDEX
 
     def getName(self, nameMode=_defaultNameMode):
         try:
@@ -93,7 +117,14 @@ class AminoAcid:
 
         return AA_NAMES[self._id][nameIndex]
 
-    # Comparison
+    def __repr__(self):
+        """Equivalent to getName()"""
+        return self.getName()
+
+    def __str__(self):
+        """Equivalent to getName()."""
+        return self.getName()  # default name mode
+
     def __eq__(self, other):
         return self._id == other._id
 
@@ -112,9 +143,5 @@ class AminoAcid:
     def __le__(self, other):
         return self._id <= other._id
 
-    def isGap(self):
-        return self._id == 0
-
-    # Hashing
     def __hash__(self):
         return hash(self._id)
