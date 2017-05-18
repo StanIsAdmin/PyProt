@@ -32,5 +32,10 @@ class TestAminoAcid(TestCase):
         aa = AminoAcid("term")
         self.assertTrue(aa.isTermination())
 
+    def test_hashValuesAreEqual(self):
+        aa1 = AminoAcid("ala")
+        aa2 = AminoAcid("A")
+        self.assertEquals(hash(aa1), hash(aa2))
+
 if __name__ == "__main__":
     TestAminoAcid.main()

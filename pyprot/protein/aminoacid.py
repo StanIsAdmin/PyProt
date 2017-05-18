@@ -125,6 +125,8 @@ class AminoAcid:
         """Equivalent to getName()."""
         return self.getName()  # default name mode
 
+    # Comparison and hashing allow to manipulate and sort instances more efficiently
+    # these functions do not have any biological meaning and their results may change over time.
     def __eq__(self, other):
         return self._id == other._id
 
