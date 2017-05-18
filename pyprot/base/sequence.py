@@ -3,7 +3,7 @@ from copy import deepcopy
 from pyprot.base.aminoacid import AminoAcid
 
 
-class Protein(list):
+class Sequence(list):
     """
     Represents a sequence of amino acids.
     Inherits from list, and ensures all items are of type AminoAcid.
@@ -11,9 +11,9 @@ class Protein(list):
 
     def __init__(self, aminoAcids=None, description=""):
         """
-        Creates a Protein object that represents the amino acid sequence contained in aminoAcids.
+        Creates a Sequence object that represents the amino acid sequence contained in aminoAcids.
         aminoAcids can be one of the following :
-        - None, meaning the Protein is empty (default)
+        - None, meaning the Sequence is empty (default)
         - an AminoAcid object
         - a string of X AminoAcid short (uppercase) names or 1 AminoAcid name
         - a list containing AminoAcid objects and/or strings of individual AminoAcid names
@@ -24,14 +24,14 @@ class Protein(list):
         self._description = description  # description of the sequence
 
         # if copy constructor, copy attributes
-        if isinstance(aminoAcids, Protein):
+        if isinstance(aminoAcids, Sequence):
             self._nameMode = aminoAcids._nameMode
             self._separator = aminoAcids._separator
             if self._description == "":
                 self._description = aminoAcids._description
 
         # format aminoAcids into a list of AminoAcid objects, and add it to list
-        self.extend(Protein.__formatList(aminoAcids))
+        self.extend(Sequence.__formatList(aminoAcids))
 
     @staticmethod
     def __formatList(aminoAcids):
@@ -58,7 +58,7 @@ class Protein(list):
 
         # No other supported types
         else:
-            raise TypeError("aminoAcids must be a Protein, list, AminoAcid object, string or None")
+            raise TypeError("aminoAcids must be a Sequence, list, AminoAcid object, string or None")
 
     def __repr__(self):
         """Representation"""
@@ -90,7 +90,7 @@ class Protein(list):
     def __getitem__(self, item):
         """Returns a base containing copies of the items from the slice"""
         result = list.__getitem__(self, item)
-        return Protein(result)
+        return Sequence(result)
 
     def __setitem__(self, key, value):
         """Sets value for a slice of the sequence"""
@@ -104,16 +104,16 @@ class Protein(list):
         """
         Inserts aminoAcids into the base at index 'index'.
         List objects will not be embedded as is, instead their items will be inserted in the same order, individually.
-        @param aminoAcids must be compatible with the Protein constructor
+        @param aminoAcids must be compatible with the Sequence constructor
         @param index is the index at which aminoAcids is inserted
         """
-        for aa in Protein.__formatList(aminoAcids):
+        for aa in Sequence.__formatList(aminoAcids):
             list.insert(self, index, aa)
             index += 1
 
     def extend(self, aminoAcids):
         """
         Extends the base by adding 'aminoAcids' at its end.
-        @param aminoAcids must be compatible with the Protein constructor
+        @param aminoAcids must be compatible with the Sequence constructor
         """
-        list.extend(self, Protein.__formatList(aminoAcids))
+        list.extend(self, Sequence.__formatList(aminoAcids))
