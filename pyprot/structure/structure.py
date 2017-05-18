@@ -3,7 +3,7 @@ from math import log, sqrt
 import matplotlib.pyplot as pyplot
 import numpy as np
 
-from pyprot.protein import AminoAcid
+from pyprot.base import AminoAcid
 
 
 class DSSP:

@@ -1,4 +1,4 @@
-from pyprot.protein.protein import Protein
+from pyprot.base.protein import Protein
 
 
 def getProteinsFromFasta(path):

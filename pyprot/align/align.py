@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from pyprot.protein import Sequence
+from pyprot.base import protein
 
 
 class Aligned:
