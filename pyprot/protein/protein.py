@@ -3,9 +3,10 @@ from copy import deepcopy
 from pyprot.protein.aminoacid import AminoAcid
 
 
-class Protein:
+class Protein(list):
     """
     Represents a sequence of amino acids.
+    Inherits from list, and ensures all items are of type AminoAcid.
     """
 
     def __init__(self, aminoAcids=None, description=""):
@@ -21,70 +22,44 @@ class Protein:
         self._nameMode = "short"  # the way in which AA names are displayed
         self._separator = ""  # how to separate AA names when displayed
         self._description = description  # description of the sequence
-        if self._description == "" and isinstance(aminoAcids, Protein):
-            self._description = aminoAcids.getDescription()
 
-        # Format aminoAcids into a list of AminoAcid objects.
-        self._aaList = self.__formatAAList(aminoAcids)  # List of amino acids
+        # if copy constructor, copy attributes
+        if isinstance(aminoAcids, Protein):
+            self._nameMode = aminoAcids._nameMode
+            self._separator = aminoAcids._separator
+            if self._description == "":
+                self._description = aminoAcids._description
+
+        # format aminoAcids into a list of AminoAcid objects, and add it to list
+        self.extend(Protein.__formatList(aminoAcids))
 
     @staticmethod
-    def __formatAAList(aminoAcids):
+    def __formatList(aminoAcids):
         """Formats 'aminoAcids' into a list of AminoAcid objects."""
 
-        # Protein object's aaList is deep copied
-        if isinstance(aminoAcids, Protein):
-            return deepcopy(aminoAcids._aaList)
-
-        # None becomes an empty Protein
-        elif aminoAcids is None:
+        # No amino acids result in an empty list
+        if aminoAcids is None:
             return []
 
-        # A string is converted to a list
+        # A single AminoAcid is copied and put within a list
+        elif isinstance(aminoAcids, AminoAcid):
+            return [AminoAcid(aminoAcids)]  # Copy constructor
+
+        # A string is converted to a list, based on its
         elif isinstance(aminoAcids, str):
             if aminoAcids.isupper():  # Multiple Amino Acids in short name mode
                 return [AminoAcid(aa) for aa in aminoAcids]
             else:  # A single Amino Acid with any name mode
                 return [AminoAcid(aminoAcids)]
 
-        # An AminoAcid is copied (from name) and put within a list
-        elif isinstance(aminoAcids, AminoAcid):
-            return [AminoAcid(aminoAcids)]  # Copy constructor
-
         # A list is copied with all of its items converted to AminoAcid objects
         elif isinstance(aminoAcids, list):
             return [AminoAcid(aa) for aa in aminoAcids]
 
-        # No more supported types
+        # No other supported types
         else:
             raise TypeError("aminoAcids must be a Protein, list, AminoAcid object, string or None")
 
-    # Size and comparison
-    def __len__(self):
-        return len(self._aaList)
-
-    def __gt__(self, other):
-        return len(self) > len(other)
-
-    def __lt__(self, other):
-        return len(self) < len(other)
-
-    def __ge__(self, other):
-        return len(self) >= len(other)
-
-    def __le__(self, other):
-        return len(self) <= len(other)
-
-    def __eq__(self, other):
-        return len(self) == len(other) and all(a == b for a, b in zip(self, other))
-
-    def __ne__(self, other):
-        return not self == other
-
-    # Iteration
-    def __iter__(self):
-        return iter(self._aaList)
-
-    # Representation
     def __repr__(self):
         """Representation"""
         return str(self)
@@ -93,8 +68,12 @@ class Protein:
         """String conversion"""
         return self._separator.join([aa.getName(self._nameMode) for aa in self])
 
+    def setDescription(self, description):
+        """Sets the protein's description"""
+        self._description = description
+
     def getDescription(self):
-        """Returns the description of the sequence."""
+        """Returns the protein's description."""
         return self._description
 
     def setNameMode(self, newMode):
@@ -108,100 +87,33 @@ class Protein:
         """Changes the string that separates each displayed AminoAcid."""
         self._separator = newSep
 
-    # Item and slice manipulation
-    def __getitem__(self, key):
-        """Return a Protein object containing copies of the items from the slice"""
-        if isinstance(key, slice):
-            return Protein([self._aaList[index] for index in range(*key.indices(len(self)))])
-        else:
-            try:
-                return self._aaList[key]  # Return the item of index 'key'
-            except:
-                raise ValueError("key does not represent an index or slice")
+    def __getitem__(self, item):
+        """Returns a protein containing copies of the items from the slice"""
+        result = list.__getitem__(self, item)
+        return Protein(result)
 
     def __setitem__(self, key, value):
-        """Set value for a slice of the sequence"""
-        if isinstance(key, slice):
-            for index in range(*key.indices(len(self))):  # range(start, stop, step)
-                self._aaList[index] = AminoAcid(value)  # create copies
-        else:
-            try:
-                self._aaList[key] = AminoAcid(value)  # Set value for one item
-            except:
-                raise ValueError("key does not represent an index or slice")
+        """Sets value for a slice of the sequence"""
+        list.__setitem__(self, key, AminoAcid(value))
 
     def __delitem__(self, key):
-        """Delete a slice of the sequence"""
-        if isinstance(key, slice):
-            start, stop, step = key.indices(len(self))
-            del self._aaList[start:stop:step]
-        else:
-            try:
-                del self._aaList[key]  # Delete one item
-            except:
-                raise ValueError("key does not represent an index or slice")
+        """Deletes a slice of the sequence"""
+        list.__delitem__(self, key)
 
-    # Protein modification
-    def insert(self, index, subSequence):
+    def insert(self, index, aminoAcids):
         """
-        Inserts subSequence into the Protein at index 'index' (default is 0).
-        subSequence must be compatible with an AminoAcid list, as specified by __formatAAList.
+        Inserts aminoAcids into the protein at index 'index'.
+        List objects will not be embedded as is, instead their items will be inserted in the same order, individually.
+        @param aminoAcids must be compatible with the Protein constructor
+        @param index is the index at which aminoAcids is inserted
         """
-        # We need a formatted sequence
-        for aa in self.__formatAAList(subSequence):
-            self._aaList.insert(index, aa)
+        for aa in Protein.__formatList(aminoAcids):
+            list.insert(self, index, aa)
             index += 1
 
-    def extend(self, subSequence):
+    def extend(self, aminoAcids):
         """
-        Same as calling insert at the end of the Protein.
+        Extends the protein by adding 'aminoAcids' at its end.
+        @param aminoAcids must be compatible with the Protein constructor
         """
-        self.insert(len(self), subSequence)
-
-    def remove(self, subSequence, startIndex=0):
-        """
-        Removes the first occurrence of 'subSequence' in self, starting at index. Returns
-        - start index of the sub-sequence within self (if it exists)
-        - False if subSequence is not a sub-sequence of self
-        """
-        lookupResult = self.hasSubSequence(subSequence, startIndex)
-        if isinstance(lookupResult, int):
-            del self[startIndex:startIndex + len(subSequence)]
-
-        return lookupResult
-
-    def delete(self, start=0, stop=None, step=None):
-        """
-        Deletes Amino Acids between indexes start (included) and stop (excluded).
-        If start is not specified, deletion will begin at index 0.
-        If stop is not specified, deletion will stop after one item.
-        """
-        if stop is None:
-            stop = start + 1
-        if step is None:
-            step = 1
-        del self[start:stop:step]
-
-    # Lookup
-    def __contains__(self, item):
-        """
-        Returns True if item is contained in Protein, False if not.
-        """
-        return item in self._aaList
-
-    def hasSubSequence(self, subSequence, startIndex=0):
-        """
-        Checks if 'subSequence' is a sub-sequence of self, starting at startIndex. Returns
-        - start index of the sub-sequence within self, if it exists
-        - False if sequence is not a sub-sequence of self
-        """
-        subLen = len(subSequence)
-        endIndex = len(self) - subLen + 1
-        if endIndex < startIndex or startIndex < 0:
-            raise ValueError("subSequence does not fit in sequence after startIndex")
-
-        for i in range(startIndex, endIndex):
-            if all(self[i + j] == subSequence[j] for j in range(subLen)):
-                return i
-
-        return False
+        list.extend(self, Protein.__formatList(aminoAcids))
