@@ -1,19 +1,38 @@
 # PyProt
 
-**PyProt** (short for ***Python Proteins***) is a set of libraries designed to represent and manipulate proteins.
+## What's in the box
+**PyProt** (Short for _Python Proteins_) is a python package with libraries designed to represent and manipulate proteins.
 
-Here is an overview of the libraries and the tools they contain (classes in `CamelCase` and functions in `camelCase`):
-- `protein` provides tools to represent amino acids as well as sequences of amino acids (i.e. proteins)
- - `AminoAcid` represents a single, possibly undetermined amino acid or gap from the `aminoAcidNames` tuple
- - `Protein` represents a protein and can be manipulated as a python list
- - `loadFasta` parses `.fasta` files and generates the resulting `Protein` objects
-- `score` implements scoring systems for substitutions between amino acids
- - `ScoreMatrix` is a standard substitution-based score matrix
- - `PSSM` is a position-specific score matrix
- - `blosumFromFasta` creates a `ScoreMatrix` from a `.fasta` file based on the BLOSUM method
-- `align` contains classes that align two or more proteins together and represent the results
- - `Aligned` is the result of any alignment, and contains information about the aligned sequences
- - `Align` is a class with multiple functions to satisfy all your alignment needs
-- `structure` implements algorithms that can be trained on datasets to issue structure predictions for new proteins
- - `DSSP` can be used to parse `.dssp` files
- - `GOR3` implements the eponymous algorithm
+Here is an overview of the sub-packages and the libraries they contain:
+- `base` contains basic representation classes
+  - `aminoacid` defines the `AminoAcid` class which represents a single amino acid
+  - `sequence` represents an amino acid `Sequence` (or _protein_) and works as a python `list`
+- `data` contains parsers for standard data files
+  - `fasta` parses and saves `.fasta` files which contain proteins
+  - `dssp` parses and saves `.dssp` files which contain score matrices
+- `align` contains classes that align proteins together and represent the results
+  - `align` defines the `Align` class which aligns two or more sequences together
+  - `aligned` stores the results of the alignment in the `Aligned` class
+  - `blosum` creates scoring matrices with the `BLOSUM` algorithm
+  - `score` represents scoring matrices, both position-specific (`PSSM`) and not (`ScoreMatrix`)
+- `structure` implements algorithms that can be trained on data sets to issue structure predictions for new proteins
+  - `GOR` implements the `GOR.3` algorithm for structure prediction
+
+## Dependencies
+Python 3
+
+## Installation
+You can install this package in two different ways:
+
+With `pip`, by running
+
+`pip install git+https://github.com/jkbr/httpie.git`
+
+By cloning this repo and adding the repo to your python `PATH`
+
+
+## Testing
+Unit tests are embedded in the corresponding packages.
+
+## Contribute
+Anyone is welcome to contribute by submitting a [pull request](https://help.github.com/articles/about-pull-requests/) or opening [new issues](https://help.github.com/articles/about-issues/).
