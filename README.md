@@ -1,7 +1,8 @@
 # PyProt
 
+**PyProt** (short for _Python Proteins_) is a python package with libraries designed to represent and manipulate proteins.
+
 ## What's in the box
-**PyProt** (Short for _Python Proteins_) is a python package with libraries designed to represent and manipulate proteins.
 
 Here is an overview of the sub-packages and the libraries they contain:
 - `base` contains basic representation classes
@@ -11,28 +12,30 @@ Here is an overview of the sub-packages and the libraries they contain:
   - `fasta` parses and saves `.fasta` files which contain proteins
   - `dssp` parses and saves `.dssp` files which contain score matrices
 - `align` contains classes that align proteins together and represent the results
-  - `align` defines the `Align` class which aligns two or more sequences together
-  - `aligned` stores the results of the alignment in the `Aligned` class
+  - `align` defines the `Align` class which aligns sequences together, and `Aligned` which stores the alignment results
   - `blosum` creates scoring matrices with the `BLOSUM` algorithm
   - `score` represents scoring matrices, both position-specific (`PSSM`) and not (`ScoreMatrix`)
 - `structure` implements algorithms that can be trained on data sets to issue structure predictions for new proteins
   - `GOR` implements the `GOR.3` algorithm for structure prediction
 
 ## Dependencies
-Python 3
+In order to use this package, you'll need a working version of [Python 3](https://www.python.org/download/releases/3.0/).
+
+Installing the package with the following instructions will automatically install its dependencies :
+- [matplotlib](https://matplotlib.org/)
 
 ## Installation
-You can install this package in two different ways:
+You can install this package in the following ways:
 
-With `pip`, by running
+- By executing the following in your command line
 
-`pip install git+https://github.com/jkbr/httpie.git`
+`pip install git+https://github.com/StanIsAdmin/PyProt.git#egg=pyprot`
 
-By cloning this repo and adding the repo to your python `PATH`
+- By downloading the package's source code [here](https://github.com/StanIsAdmin/PyProt/archive/master.zip), unzipping it and then running
 
+`pip install <downloaded-code-path>`
 
-## Testing
-Unit tests are embedded in the corresponding packages.
+- Once the source code is downloaded and extracted, you can also copy-paste it to any directory in your Python `PATH`.
 
 ## Contribute
-Anyone is welcome to contribute by submitting a [pull request](https://help.github.com/articles/about-pull-requests/) or opening [new issues](https://help.github.com/articles/about-issues/).
+Anyone is welcome to contribute by submitting a [pull request](https://help.github.com/articles/about-pull-requests/) or by opening [new issues](https://help.github.com/articles/about-issues/).
