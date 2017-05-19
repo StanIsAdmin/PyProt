@@ -57,3 +57,26 @@ class TestSequence(TestCase):
         prot1 = Sequence(["Methionine", "pyrrolysine", "CYSTEINE", "K"])
         prot2 = Sequence("MOCK")
         self.assertEquals(prot1, prot2)
+
+    def test_differentValuesNotEqual(self):
+        prot1 = Sequence("AB")
+        prot2 = Sequence("BA")
+        self.assertNotEqual(prot1, prot2)
+
+    def test_sliceIsSequenceCopy(self):
+        prot = Sequence("ABCD")
+        subProt = prot[1:3]
+        self.assertEquals(subProt, Sequence("BC"))
+        del subProt[0]
+        self.assertEquals(subProt, Sequence("C"))
+        self.assertEquals(prot, Sequence("ABCD"))
+
+    def test_sliceSingleItemIsAminoAcid(self):
+        prot = Sequence("ABC")
+        aa = prot[0]
+        self.assertEquals(aa, AminoAcid("A"))
+
+    def test_sliceMultipleItemsIsSequence(self):
+        prot = Sequence("ABC")
+        seq = prot[0:2]
+        self.assertEquals(seq, Sequence("AB"))

@@ -87,18 +87,9 @@ class Sequence(list):
         """Changes the string that separates each displayed AminoAcid."""
         self._separator = newSep
 
-    def __getitem__(self, item):
-        """Returns a base containing copies of the items from the slice"""
-        result = list.__getitem__(self, item)
-        return Sequence(result)
-
     def __setitem__(self, key, value):
         """Sets value for a slice of the sequence"""
         list.__setitem__(self, key, AminoAcid(value))
-
-    def __delitem__(self, key):
-        """Deletes a slice of the sequence"""
-        list.__delitem__(self, key)
 
     def insert(self, index, aminoAcids):
         """
