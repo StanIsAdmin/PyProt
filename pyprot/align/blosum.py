@@ -1,8 +1,8 @@
 from math import log, ceil
 
 from pyprot.base.aminoacid import AminoAcid
-from pyprot.data.fasta import getProteinsFromFasta
-from pyprot.score.score import ScoreMatrix
+from pyprot.data.fasta import getSequencesFromFasta
+from pyprot.align.score import ScoreMatrix
 
 
 def belongs(outSequence, group, minMatches):
@@ -27,7 +27,7 @@ def makeGroupsFromFasta(path, requiredIdentityPercent):
     at least 'requiredIdentityPercent'.
     Returns a list representing the groups as lists of Protein objects.
     """
-    sequences = [seq for seq in getProteinsFromFasta(path)]
+    sequences = [seq for seq in getSequencesFromFasta(path)]
     groups = [[sequences[0]]]  # First sequence is assigned to first group
 
     seqSize = len(sequences[0])  # Size of the sequences
@@ -69,7 +69,7 @@ def valueDictsFromGroups(groups):
 
     for group in groups:  # For each group
         groupAAs = []
-        groupSize = len(group)  # Size of group (n°sequences)
+        groupSize = len(group)  # Size of group (n sequences)
 
         for col in range(seqSize):  # For each column
             groupCol = {}
