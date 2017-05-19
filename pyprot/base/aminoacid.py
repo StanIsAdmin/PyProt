@@ -87,12 +87,14 @@ class AminoAcid:
     @staticmethod
     def getNames(nameMode=_defaultNameMode):
         """Yields the names of the 20 basic amino acids."""
-        yield from AminoAcid.getNamesInRange(*AA_NAMES_CLASSIC_RANGE, nameMode)
+        start, stop = AA_NAMES_CLASSIC_RANGE
+        yield from AminoAcid.getNamesInRange(start, stop, nameMode)
 
     @staticmethod
     def getAllNames(nameMode=_defaultNameMode):
         """Yields the names of all represented amino acids, excepting gaps and termination codons."""
-        yield from AminoAcid.getNamesInRange(*AA_NAMES_EXTENDED_RANGE, nameMode)
+        start, stop = AA_NAMES_EXTENDED_RANGE
+        yield from AminoAcid.getNamesInRange(start, stop, nameMode)
 
     @staticmethod
     def getNamesInRange(startIndex, stopIndex, nameMode=_defaultNameMode):
