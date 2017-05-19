@@ -3,7 +3,7 @@ from codecs import open
 
 all_requirements = []
 with open('requirements.txt', encoding='utf-8') as f:
-    all_requirements = f.readlines()
+    all_requirements = f.read().splitlines()
 
 setup(
     name='pyprot',
@@ -39,7 +39,7 @@ setup(
 
     packages=find_packages(exclude=[]),
 
-    install_requires=['matplotlib'],
+    install_requires=all_requirements,
 
     extras_require={
         'test': ['nose']
