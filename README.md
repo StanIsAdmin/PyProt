@@ -19,7 +19,7 @@ Here is an overview of the sub-packages and the libraries they contain:
   - `GOR` implements the `GOR.3` algorithm for structure prediction
 
 ## Dependencies
-In order to use this package, you'll need a working version of [Python 3](https://www.python.org/download/releases/3.0/).
+In order to use this package, you'll need a working version of [Python 3.3](https://www.python.org/download/releases/3.0/) or greater.
 
 Installing the package with the following instructions will automatically install its dependencies :
 - [matplotlib](https://matplotlib.org/)
