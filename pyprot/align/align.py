@@ -131,9 +131,9 @@ class Aligned:
 
                 if not self.isMultiple:
                     res.append("".join(listI))
-                    res.append(str(seqBPos))
                     for i in range(maxBLen):
                         res.append("".join([s[i] if len(s) > i else " " for s in listB]))
+                        res.append(str(seqBPos))
                 res.append("\n")
                 listA, listB, listI = [], [], []
                 maxALen, maxBLen = 0, 0
