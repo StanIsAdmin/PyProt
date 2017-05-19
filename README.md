@@ -21,21 +21,20 @@ Here is an overview of the sub-packages and the libraries they contain:
   - `GOR` implements the `GOR.3` algorithm for structure prediction
 
 ## Dependencies
-In order to use this package, you'll need a working version of [Python 3.3](https://www.python.org/download/releases/3.0/) or greater.
+In order to use this package, you'll need a working version of [Python 3.3](https://www.python.org/download/releases/3.0/) or later installed.
 
-Installing the package with the following instructions will automatically install its dependencies :
-- [matplotlib](https://matplotlib.org/)
+Installing the package with the following instructions will automatically install its dependencies, which are listed in the `requirements.txt` file.
 
 ## Installation
 You can install this package in the following ways:
 
 - By executing the following in your command line
 
-`pip3 install git+https://github.com/StanIsAdmin/PyProt.git`
+`pip3 install git+https://github.com/StanIsAdmin/PyProt.git --user`
 
 - By downloading the package's source code [here](https://github.com/StanIsAdmin/PyProt/archive/master.zip), unzipping it and then running
 
-`pip3 install <downloaded-code-path>`
+`pip3 install <downloaded-code-path> --user`
 
 ## Documentation
 
