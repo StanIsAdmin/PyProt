@@ -1,9 +1,9 @@
-from pyprot.base.sequence import Protein
+from pyprot.base.sequence import Sequence
 
 
-def getProteinsFromFasta(path):
+def getSequencesFromFasta(path):
     """
-    Loads the FASTA file located in 'path' and yields the Proteins it contains.
+    Loads the FASTA file located in 'path' and yields the Sequences it contains.
     """
     with open(path, 'r') as fastaFile:
         newProtein = None
@@ -12,7 +12,7 @@ def getProteinsFromFasta(path):
             if line_s != "" and line_s[0] == ">":
                 if newProtein is not None:
                     yield newProtein
-                newProtein = Protein(None, line_s[1:])
+                newProtein = Sequence(None, line_s[1:])
             else:
                 newProtein.extend(line_s)
         if len(newProtein) > 0:
