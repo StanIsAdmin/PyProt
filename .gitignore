@@ -1,5 +1,6 @@
 examples/resources/dataset/
 .idea/
+docs-sphinx/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
