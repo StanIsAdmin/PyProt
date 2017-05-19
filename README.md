@@ -31,13 +31,11 @@ You can install this package in the following ways:
 
 - By executing the following in your command line
 
-`pip install git+https://github.com/StanIsAdmin/PyProt.git#egg=pyprot`
+`pip3 install git+https://github.com/StanIsAdmin/PyProt.git`
 
 - By downloading the package's source code [here](https://github.com/StanIsAdmin/PyProt/archive/master.zip), unzipping it and then running
 
-`pip install <downloaded-code-path>`
-
-- Once the source code is downloaded and extracted, you can also copy-paste it to any directory in your Python `PATH`.
+`pip3 install <downloaded-code-path>`
 
 ## Documentation
 
