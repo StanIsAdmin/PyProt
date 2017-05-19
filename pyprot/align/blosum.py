@@ -91,9 +91,9 @@ def getFrequencies(groupValues, groupSizes):
     Evaluates the frequencies of AminoAcids within columns of groups in 'groupValues'.
     Frequencies are weighted according to group sizes in 'groupSizes'.
     Returns two dictionaries and a number:
-        -'freqPairs' maps pairs of AminoAcids to their frequencies
-        -'freqSingle' maps single AminoAcids to their frequencies
-        -'freqSum' is the sum of all frequencies
+    -'freqPairs' maps pairs of AminoAcids to their frequencies
+    -'freqSingle' maps single AminoAcids to their frequencies
+    -'freqSum' is the sum of all frequencies
     """
     seqSize = len(groupValues[0])  # Size of the Sequences
     groupCount = len(groupSizes)  # Number of groups
