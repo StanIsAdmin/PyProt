@@ -1,0 +1,592 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyprot.align.align &mdash; pyprot alpha documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     'alpha',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pyprot alpha documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyprot.align.align</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">from</span> <span class="nn">pyprot.base.sequence</span> <span class="kn">import</span> <span class="n">Sequence</span>
+
+
+<div class="viewcode-block" id="Aligned"><a class="viewcode-back" href="../../../pyprot.align.html#pyprot.align.align.Aligned">[docs]</a><span class="k">class</span> <span class="nc">Aligned</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents two aligned Sequences with some metadata about the alignment.</span>
+<span class="sd">    Alignments can be two-sequences alignments or multiple sequence alignments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Aligned.__init__"><a class="viewcode-back" href="../../../pyprot.align.html#pyprot.align.align.Aligned.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seqA</span><span class="p">,</span> <span class="n">seqB</span><span class="p">,</span> <span class="n">seqAStart</span><span class="p">,</span> <span class="n">seqBStart</span><span class="p">,</span> <span class="n">alignType</span><span class="p">,</span> <span class="n">alignScore</span><span class="p">,</span> <span class="n">scoreMatrix</span><span class="p">,</span> <span class="n">isMultiple</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">seqA</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">seqB</span><span class="p">))</span>
+
+        <span class="c"># seqA is always a Sequence, seqB can be a list of ints (if MSA)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seqA</span> <span class="o">=</span> <span class="n">seqA</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seqA</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">)</span> <span class="k">else</span> <span class="n">seqB</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seqB</span> <span class="o">=</span> <span class="n">seqB</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seqA</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">)</span> <span class="k">else</span> <span class="n">seqA</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seqInter</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># Sequence separators (.: )</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">seqAStart</span> <span class="o">=</span> <span class="n">seqAStart</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seqA</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">)</span> <span class="k">else</span> <span class="n">seqBStart</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seqBStart</span> <span class="o">=</span> <span class="n">seqBStart</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seqA</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">)</span> <span class="k">else</span> <span class="n">seqAStart</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqA</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">alignType</span> <span class="o">=</span> <span class="n">alignType</span>  <span class="c"># Options used for alignemnt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alignScore</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">alignScore</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c"># Score of alignment</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">isMultiple</span> <span class="o">=</span> <span class="n">isMultiple</span>  <span class="c"># Is this a M.S.A ?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pssmDescription</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isMultiple</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pssmDescription</span> <span class="o">=</span> <span class="n">scoreMatrix</span><span class="o">.</span><span class="n">getDescription</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">condensed</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># When true, aligned Sequences are not displayed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunkSize</span> <span class="o">=</span> <span class="mi">80</span>  <span class="c"># Used for display</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sizeIndic</span> <span class="o">=</span> <span class="mi">20</span>  <span class="c"># Same</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">identity</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># Identity (same AAs)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gaps</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># Gap count (either AA is a gap)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seqAGaps</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seqBGaps</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">similarity</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># Similarity (positive score between AAs)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isMultiple</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">aa</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqA</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">aa</span><span class="o">.</span><span class="n">isGap</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">gaps</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">seqAGaps</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">aa1</span><span class="p">,</span> <span class="n">aa2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqA</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqB</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">aa1</span><span class="o">.</span><span class="n">isGap</span><span class="p">()</span> <span class="ow">or</span> <span class="n">aa2</span><span class="o">.</span><span class="n">isGap</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">aa1</span><span class="o">.</span><span class="n">isGap</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">seqAGaps</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">seqBGaps</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">seqInter</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">gaps</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">aa1</span> <span class="o">==</span> <span class="n">aa2</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">seqInter</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;:&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">identity</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">scoreMatrix</span><span class="o">.</span><span class="n">getScore</span><span class="p">(</span><span class="n">aa1</span><span class="p">,</span> <span class="n">aa2</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">seqInter</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">similarity</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">seqInter</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seqAEnd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqAStart</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqA</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqAGaps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seqBEnd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqBStart</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqB</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqBGaps</span>
+</div>
+<div class="viewcode-block" id="Aligned.getBottomSequence"><a class="viewcode-back" href="../../../pyprot.align.html#pyprot.align.align.Aligned.getBottomSequence">[docs]</a>    <span class="k">def</span> <span class="nf">getBottomSequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqB</span>
+</div>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Object representation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isMultiple</span><span class="p">:</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;---------- Multi-Seq. Alignment ----------&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;---------- Alignment ----------&quot;</span><span class="p">)</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;Size       : &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;Type       : &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">alignType</span><span class="p">)</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;Score      : &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alignScore</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isMultiple</span><span class="p">:</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;Identity   : &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">identity</span><span class="p">)</span> \
+                       <span class="o">+</span> <span class="s">&quot; ({0:.2f}%)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">identity</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqA</span><span class="p">))))</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;Similarity : &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">similarity</span><span class="p">)</span> \
+                       <span class="o">+</span> <span class="s">&quot; ({0:.2f}%)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">similarity</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqA</span><span class="p">))))</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;Gaps       : &quot;</span> <span class="o">+</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gaps</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaps</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s">&quot;None&quot;</span><span class="p">))</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isMultiple</span><span class="p">:</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;PSSM : &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pssmDescription</span><span class="p">)</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;Aligned seq. : &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqA</span><span class="o">.</span><span class="n">getDescription</span><span class="p">())</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqAGaps</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; Gaps, &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqAGaps</span><span class="p">)</span> <span class="o">+</span>
+                       <span class="s">&quot; AAs (positions &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqAStart</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; to &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqAEnd</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;)&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;Upper seq. : &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqA</span><span class="o">.</span><span class="n">getDescription</span><span class="p">())</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqAGaps</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; Gaps, &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqAGaps</span><span class="p">)</span> <span class="o">+</span>
+                       <span class="s">&quot; AAs (positions &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqAStart</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; to &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqAEnd</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;)&quot;</span><span class="p">)</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;Lower seq. : &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqB</span><span class="o">.</span><span class="n">getDescription</span><span class="p">())</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqBGaps</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; Gaps, &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqBGaps</span><span class="p">)</span> <span class="o">+</span>
+                       <span class="s">&quot; AAs (positions &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqBStart</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; to &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqBEnd</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;)&quot;</span><span class="p">)</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">condensed</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+
+        <span class="n">listA</span><span class="p">,</span> <span class="n">listB</span><span class="p">,</span> <span class="n">listI</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="n">maxALen</span><span class="p">,</span> <span class="n">maxBLen</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+        <span class="n">seqAPos</span><span class="p">,</span> <span class="n">seqBPos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqAStart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqBStart</span>
+        <span class="n">seqANextPos</span><span class="p">,</span> <span class="n">seqBNextPos</span> <span class="o">=</span> <span class="n">seqAPos</span><span class="p">,</span> <span class="n">seqBPos</span>
+
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqA</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">a</span><span class="o">.</span><span class="n">isGap</span><span class="p">():</span>
+                <span class="n">seqANextPos</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">listA</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
+            <span class="n">maxALen</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)),</span> <span class="n">maxALen</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isMultiple</span><span class="p">:</span>
+                <span class="n">listI</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqInter</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+                <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seqB</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">b</span><span class="o">.</span><span class="n">isGap</span><span class="p">():</span>
+                    <span class="n">seqBNextPos</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">listB</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+                <span class="n">maxBLen</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">b</span><span class="p">)),</span> <span class="n">maxBLen</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">index</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="p">(</span><span class="n">index</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunkSize</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seqA</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">seqAPos</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxALen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">i</span> <span class="k">else</span> <span class="s">&quot; &quot;</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">listA</span><span class="p">]))</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isMultiple</span><span class="p">:</span>
+                    <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">listI</span><span class="p">))</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxBLen</span><span class="p">):</span>
+                        <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">i</span> <span class="k">else</span> <span class="s">&quot; &quot;</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">listB</span><span class="p">]))</span>
+                        <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">seqBPos</span><span class="p">))</span>
+                <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+                <span class="n">listA</span><span class="p">,</span> <span class="n">listB</span><span class="p">,</span> <span class="n">listI</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+                <span class="n">maxALen</span><span class="p">,</span> <span class="n">maxBLen</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+                <span class="n">seqAPos</span><span class="p">,</span> <span class="n">seqBPos</span> <span class="o">=</span> <span class="n">seqANextPos</span><span class="p">,</span> <span class="n">seqBNextPos</span>
+
+        <span class="k">return</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Align"><a class="viewcode-back" href="../../../pyprot.align.html#pyprot.align.align.Align">[docs]</a><span class="k">class</span> <span class="nc">Align</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents an alignment matrix, used to determine the alignment score between two Sequences</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Align.__init__"><a class="viewcode-back" href="../../../pyprot.align.html#pyprot.align.align.Align.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scoreMatrix</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates an AlignMatrix object that uses scoreMatrix as a scoring system between amino acids.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scoreMatrix</span> <span class="o">=</span> <span class="n">scoreMatrix</span>  <span class="c"># scoring matrix to use</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># copies of Sequences to align</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># Used for alignment scores between Sequences</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rowGapMatrix</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># used for affine gap penalty</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_colGapMatrix</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_originMatrix</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># Used for backtracking purposes</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_alignMode</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>  <span class="c"># Align mode (global, semiglobal, local)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_isSuboptimal</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># Is the alignment subobtimal ?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_isMultiple</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># Is the alignment done against multiple Sequences at once ?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_resultCount</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># The number of expected results</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subOptimalDepth</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxAlignScore</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># Maximum score</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_currentAlignScore</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># Score for this alignment</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreRows</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># Index of maximum values from _alignMatrix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreCols</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_currentAlignPath</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bestAlignPath</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># Sequence of origins for alignment with best score</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_allAlignPaths</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># all Sequences of origins for alignments with best scores</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_iniGapPenalty</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># Initial gap penalty</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_extGapPenalty</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># Extended gap penalty</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_alignedRowSeq</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># Aligned Sequences (result of alignment)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_alignedColSeq</span> <span class="o">=</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="Align.globalAlign"><a class="viewcode-back" href="../../../pyprot.align.html#pyprot.align.align.Align.globalAlign">[docs]</a>    <span class="k">def</span> <span class="nf">globalAlign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seqA</span><span class="p">,</span> <span class="n">seqB</span><span class="p">,</span> <span class="n">iniGapPenalty</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">extGapPenalty</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">semiGlobal</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">resultCount</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns all best global alignment between &#39;seqA&#39; and &#39;seqB&#39; with the provided</span>
+<span class="sd">        initial and extended gap penalties.</span>
+<span class="sd">        If &#39;semiGlobal&#39; is True, allows alignment to discard the start and end of either Sequence.</span>
+<span class="sd">        (this allows for better alignments when Sequences overlap only partially)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">semiGlobal</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_alignMode</span> <span class="o">=</span> <span class="s">&quot;semiglobal&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_alignMode</span> <span class="o">=</span> <span class="s">&quot;global&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_resultCount</span> <span class="o">=</span> <span class="n">resultCount</span>
+
+        <span class="c"># Initialize all data structures</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__initialize</span><span class="p">(</span><span class="n">seqA</span><span class="p">,</span> <span class="n">seqB</span><span class="p">,</span> <span class="n">iniGapPenalty</span><span class="p">,</span> <span class="n">extGapPenalty</span><span class="p">)</span>
+
+        <span class="c"># Align in global mode, from the bottom right</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignMode</span> <span class="o">==</span> <span class="s">&quot;global&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_currentAlignScore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">__align</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_currentAlignScore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxAlignScore</span>
+            <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreRows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreCols</span><span class="p">):</span>
+                <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">__align</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Align.localAlign"><a class="viewcode-back" href="../../../pyprot.align.html#pyprot.align.align.Align.localAlign">[docs]</a>    <span class="k">def</span> <span class="nf">localAlign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seqA</span><span class="p">,</span> <span class="n">seqB</span><span class="p">,</span> <span class="n">iniGapPenalty</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">extGapPenalty</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">resultCount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">subOptimalDepth</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns n best local alignment between &#39;seqA&#39; and &#39;seqB&#39; with the provided</span>
+<span class="sd">        initial and extended gap penalties, where n equals &#39;resultCount&#39; (-1 for all).</span>
+<span class="sd">        If &#39;subOptimalDepth&#39; equals m, looks for m best suboptimal alignments as well.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_alignMode</span> <span class="o">=</span> <span class="s">&quot;local&quot;</span>
+
+        <span class="c"># Initialize all data structures</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__initialize</span><span class="p">(</span><span class="n">seqA</span><span class="p">,</span> <span class="n">seqB</span><span class="p">,</span> <span class="n">iniGapPenalty</span><span class="p">,</span> <span class="n">extGapPenalty</span><span class="p">)</span>
+
+        <span class="c"># Number of expected results for each max. score</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_resultCount</span> <span class="o">=</span> <span class="n">resultCount</span>
+
+        <span class="c"># Align in local mode, from the maximum value (optimal)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_currentAlignScore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxAlignScore</span>
+        <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreRows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreCols</span><span class="p">):</span>
+            <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">__align</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>  <span class="c"># Results</span>
+
+        <span class="c"># If suboptimal alignments are requested</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subOptimalDepth</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">subOptimalDepth</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_isSuboptimal</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">subOptimalDepth</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_subOptimalDepth</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">__clearBestPath</span><span class="p">()</span>  <span class="c"># Reevalute scores with best alignment reset to 0</span>
+
+            <span class="c"># Number of expected results for each max. score</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_resultCount</span> <span class="o">=</span> <span class="n">resultCount</span>
+
+            <span class="c"># Align in local mode, from the new maximum value (sub-optimal)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_currentAlignScore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxAlignScore</span>
+            <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreRows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreCols</span><span class="p">):</span>
+                <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">__align</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Align.multiAlign"><a class="viewcode-back" href="../../../pyprot.align.html#pyprot.align.align.Align.multiAlign">[docs]</a>    <span class="k">def</span> <span class="nf">multiAlign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">resultCount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">subOptimalDepth</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns n best local M.S.A. of &#39;Sequence&#39; against the ScoreMatrix (which must be </span>
+<span class="sd">        position-specific and provide gap penalties) where n equals &#39;resultCount&#39; (-1 for all).</span>
+<span class="sd">        If &#39;subOptimalDepth&#39; equals m, looks for m best suboptimal alignments as well.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_isMultiple</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">colSeq</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_scoreMatrix</span><span class="p">))]</span>
+        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">localAlign</span><span class="p">(</span><span class="n">colSeq</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">resultCount</span><span class="p">,</span> <span class="n">subOptimalDepth</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">__initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seqA</span><span class="p">,</span> <span class="n">seqB</span><span class="p">,</span> <span class="n">iniGapPenalty</span><span class="p">,</span> <span class="n">extGapPenalty</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets all initial values for required data structures.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Sequences</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">seqA</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">seqB</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Sequences to align cannot be empty&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span> <span class="o">=</span> <span class="n">seqA</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span> <span class="o">=</span> <span class="n">seqB</span>
+
+        <span class="c"># Alignments</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_isSuboptimal</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subOptimalDepth</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_alignedRowSeq</span> <span class="o">=</span> <span class="n">Sequence</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isMultiple</span><span class="p">:</span>
+            <span class="c"># In MSA (align with PSSM) there is no column Sequence</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_alignedColSeq</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_alignedColSeq</span> <span class="o">=</span> <span class="n">Sequence</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxAlignScore</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># Maximum score found while aligning</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreRows</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># Rows of maximum score</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreCols</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># Columns of maximum score</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_currentAlignPath</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># indexes of the current alignment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bestAlignPath</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># indexes of the alignment with the best score</span>
+
+        <span class="c"># Gap penalties</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_iniGapPenalty</span> <span class="o">=</span> <span class="n">iniGapPenalty</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_extGapPenalty</span> <span class="o">=</span> <span class="n">iniGapPenalty</span> <span class="k">if</span> <span class="n">extGapPenalty</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">extGapPenalty</span>
+
+        <span class="c"># Matrices</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span> \
+                             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rowGapMatrix</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_colGapMatrix</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_originMatrix</span> <span class="o">=</span> <span class="p">[[</span><span class="s">&quot;&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span> \
+                              <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+
+        <span class="c"># Global alignment : first line and colunm have initial scores and origins</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignMode</span> <span class="o">==</span> <span class="s">&quot;global&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__initAlignValues</span><span class="p">()</span>
+
+        <span class="c"># Fill all matrices</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__fill</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
+
+        <span class="c"># Find best scores</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__findBestScore</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__initAlignValues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iniGapPenalty</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extGapPenalty</span> <span class="o">*</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span><span class="p">):</span>  <span class="c"># First row</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_rowGapMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_colGapMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_originMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;L&quot;</span>  <span class="c"># Origin is left</span>
+
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span><span class="p">):</span>  <span class="c"># First column</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_rowGapMatrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_colGapMatrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_originMatrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;T&quot;</span>  <span class="c"># Origin is top</span>
+
+    <span class="k">def</span> <span class="nf">__fill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the score for matrix values at row &#39;row&#39; and column &#39;col&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Row gap matrix</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isMultiple</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rowGapMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scoreMatrix</span><span class="o">.</span><span class="n">getGapPenalty</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">initialGapScore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span><span class="p">[</span><span class="n">row</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iniGapPenalty</span>
+            <span class="n">extendedGapScore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowGapMatrix</span><span class="p">[</span><span class="n">row</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extGapPenalty</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rowGapMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">initialGapScore</span><span class="p">,</span> <span class="n">extendedGapScore</span><span class="p">)</span>
+
+        <span class="c"># Column gap matrix</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isMultiple</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_colGapMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scoreMatrix</span><span class="o">.</span><span class="n">getGapPenalty</span><span class="p">(</span><span class="n">col</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">initialGapScore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iniGapPenalty</span>
+            <span class="n">extendedGapScore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colGapMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extGapPenalty</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_colGapMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">initialGapScore</span><span class="p">,</span> <span class="n">extendedGapScore</span><span class="p">)</span>
+
+        <span class="c"># Align matrix</span>
+        <span class="n">deleteScore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowGapMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span>
+        <span class="n">insertScore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colGapMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span>
+        <span class="n">matchScore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span><span class="p">[</span><span class="n">row</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">col</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> \
+                     <span class="bp">self</span><span class="o">.</span><span class="n">_scoreMatrix</span><span class="o">.</span><span class="n">getScore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span><span class="p">[</span><span class="n">row</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span><span class="p">[</span><span class="n">col</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">maxScore</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignMode</span> <span class="o">==</span> <span class="s">&quot;local&quot;</span><span class="p">:</span>  <span class="c"># Local alignment</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">maxScore</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">insertScore</span><span class="p">,</span> <span class="n">deleteScore</span><span class="p">,</span> <span class="n">matchScore</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c"># Global alignment</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">maxScore</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">insertScore</span><span class="p">,</span> <span class="n">deleteScore</span><span class="p">,</span> <span class="n">matchScore</span><span class="p">)</span>
+
+        <span class="c"># Origin matrix</span>
+        <span class="k">if</span> <span class="n">insertScore</span> <span class="o">==</span> <span class="n">maxScore</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_originMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&quot;L&quot;</span>
+        <span class="k">if</span> <span class="n">matchScore</span> <span class="o">==</span> <span class="n">maxScore</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_originMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&quot;D&quot;</span>
+        <span class="k">if</span> <span class="n">deleteScore</span> <span class="o">==</span> <span class="n">maxScore</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_originMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&quot;T&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__clearBestPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resets all scores from the first best alignment and then reevaluates the affected scores.</span>
+<span class="sd">        A new maximum score will be found from these, allowing for new alignment lookups.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_allAlignPaths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bestAlignPath</span><span class="p">)</span>
+
+        <span class="c"># Clear scores from best align path</span>
+        <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bestAlignPath</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># Reset scores</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_colGapMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rowGapMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_originMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+
+        <span class="c"># Reevaluate scores for further rows and columns (affected values)</span>
+        <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bestAlignPath</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">furtherRow</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">furtherCol</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">furtherRow</span><span class="p">,</span> <span class="n">furtherCol</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allAlignPaths</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_originMatrix</span><span class="p">[</span><span class="n">furtherRow</span><span class="p">][</span><span class="n">furtherCol</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__fill</span><span class="p">(</span><span class="n">furtherRow</span><span class="p">,</span> <span class="n">furtherCol</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bestAlignPath</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__findBestScore</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__findBestScore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxAlignScore</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreCols</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreRows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span><span class="p">[</span><span class="n">row</span><span class="p">][</span><span class="n">col</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxAlignScore</span><span class="p">:</span>  <span class="c"># New max alignment</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_maxAlignScore</span> <span class="o">=</span> <span class="n">score</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreRows</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreCols</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">score</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maxAlignScore</span><span class="p">:</span>  <span class="c"># Same max alignment</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreRows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_maxScoreCols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__align</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Yields all best alignments starting from row i and column j.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resultCount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c"># Local alignments are complete when we reach a null score</span>
+        <span class="c"># Global alignments are complete when we reach the beginning of the matrix</span>
+        <span class="c"># Semiglobal alignments are complete when we reach an edge of the matrix</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alignMode</span> <span class="o">==</span> <span class="s">&quot;local&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> \
+                <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alignMode</span> <span class="o">==</span> <span class="s">&quot;global&quot;</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> \
+                <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alignMode</span> <span class="o">==</span> <span class="s">&quot;semiglobal&quot;</span> <span class="ow">and</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)):</span>
+
+            <span class="n">alignDescription</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignMode</span> <span class="o">+</span> \
+                               <span class="p">(</span><span class="s">&quot;-suboptimal&quot;</span> <span class="o">+</span> <span class="s">&quot;(&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_subOptimalDepth</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;)&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isSuboptimal</span>
+
+            <span class="c"># Create result (Sequence obj. for MSA, Aligned obj. otherwise)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isMultiple</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">Aligned</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alignedColSeq</span><span class="p">,</span>
+                                 <span class="n">Sequence</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alignedRowSeq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span><span class="o">.</span><span class="n">getDescription</span><span class="p">()),</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span>
+                                 <span class="n">alignDescription</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_currentAlignScore</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scoreMatrix</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">Aligned</span><span class="p">(</span><span class="n">Sequence</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alignedColSeq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span><span class="o">.</span><span class="n">getDescription</span><span class="p">()),</span>
+                                 <span class="n">Sequence</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alignedRowSeq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span><span class="o">.</span><span class="n">getDescription</span><span class="p">()),</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span>
+                                 <span class="n">alignDescription</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_currentAlignScore</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scoreMatrix</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+            <span class="c"># Remember first best alignment for subobtimal lookup</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bestAlignPath</span> <span class="o">==</span> <span class="p">[]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_bestAlignPath</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_currentAlignPath</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_resultCount</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">yield</span> <span class="n">result</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">origin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_originMatrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_currentAlignPath</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="n">origin</span> <span class="o">==</span> <span class="s">&quot;T&quot;</span><span class="p">:</span>  <span class="c"># top</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_alignedColSeq</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">&quot;-&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_alignedRowSeq</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+                    <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">__align</span><span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">origin</span> <span class="o">==</span> <span class="s">&quot;D&quot;</span><span class="p">:</span>  <span class="c"># diagonal</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_alignedColSeq</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_alignedRowSeq</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+                    <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">__align</span><span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">origin</span> <span class="o">==</span> <span class="s">&quot;L&quot;</span><span class="p">:</span>  <span class="c"># left</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_alignedColSeq</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_alignedRowSeq</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">&quot;-&quot;</span><span class="p">)</span>
+                    <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">__align</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Origin must be T (top), D (diagonal) or L (left)&quot;</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_currentAlignPath</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignedColSeq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignedRowSeq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c"># Representation</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Representation of the alignment matrix.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;No alignment done yet&quot;</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sepSize</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="n">rep</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;&quot;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;L&quot;</span><span class="p">:</span> <span class="s">&quot;_   &quot;</span><span class="p">,</span> <span class="s">&quot;D&quot;</span><span class="p">:</span> <span class="s">&quot; </span><span class="se">\\</span><span class="s">  &quot;</span><span class="p">,</span> <span class="s">&quot;T&quot;</span><span class="p">:</span> <span class="s">&quot;   |&quot;</span><span class="p">,</span> <span class="s">&quot;LD&quot;</span><span class="p">:</span> <span class="s">&quot;_</span><span class="se">\\</span><span class="s">  &quot;</span><span class="p">,</span> <span class="s">&quot;DT&quot;</span><span class="p">:</span> <span class="s">&quot; </span><span class="se">\\</span><span class="s"> |&quot;</span><span class="p">,</span> <span class="s">&quot;LT&quot;</span><span class="p">:</span> <span class="s">&quot;_  |&quot;</span><span class="p">,</span>
+               <span class="s">&quot;LDT&quot;</span><span class="p">:</span> <span class="s">&quot;_</span><span class="se">\\</span><span class="s"> |&quot;</span><span class="p">}</span>
+        <span class="c"># Amino Acid column Sequence</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot; &quot;</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sepSize</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">aa</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colSeq</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&#39;{a!s:&lt;{w}}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="n">aa</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">sepSize</span><span class="p">)</span>
+
+        <span class="c"># First line of values (no amino acid)</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">origin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_originMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">result</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&#39;{o:&gt;{w}}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">o</span><span class="o">=</span><span class="n">rep</span><span class="p">[</span><span class="n">origin</span><span class="p">],</span> <span class="n">w</span><span class="o">=</span><span class="n">sepSize</span><span class="p">)</span>
+
+        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot; &quot;</span> <span class="o">*</span> <span class="n">sepSize</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">result</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&#39;{v:&lt;{w}}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">v</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">sepSize</span><span class="p">)</span>
+
+        <span class="c"># Amino Acid line Sequence and values</span>
+        <span class="k">for</span> <span class="n">values</span><span class="p">,</span> <span class="n">origins</span><span class="p">,</span> <span class="n">aa</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alignMatrix</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_originMatrix</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rowSeq</span><span class="p">):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">origin</span> <span class="ow">in</span> <span class="n">origins</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&#39;{o:&gt;{w}}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">o</span><span class="o">=</span><span class="n">rep</span><span class="p">[</span><span class="n">origin</span><span class="p">],</span> <span class="n">w</span><span class="o">=</span><span class="n">sepSize</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">result</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&#39;{a!s:&lt;{w}}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="n">aa</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">sepSize</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="s">&#39;{v:&lt;{w}}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">v</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">sepSize</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Stanislas Gueniffey.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

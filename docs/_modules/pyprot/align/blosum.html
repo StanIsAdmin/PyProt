@@ -1,0 +1,302 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyprot.align.blosum &mdash; pyprot alpha documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     'alpha',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pyprot alpha documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyprot.align.blosum</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">log</span><span class="p">,</span> <span class="n">ceil</span>
+
+<span class="kn">from</span> <span class="nn">pyprot.base.aminoacid</span> <span class="kn">import</span> <span class="n">AminoAcid</span>
+<span class="kn">from</span> <span class="nn">pyprot.data.fasta</span> <span class="kn">import</span> <span class="n">getSequencesFromFasta</span>
+<span class="kn">from</span> <span class="nn">pyprot.align.score</span> <span class="kn">import</span> <span class="n">ScoreMatrix</span>
+
+
+<div class="viewcode-block" id="belongs"><a class="viewcode-back" href="../../../pyprot.align.html#pyprot.align.blosum.belongs">[docs]</a><span class="k">def</span> <span class="nf">belongs</span><span class="p">(</span><span class="n">outSequence</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">minMatches</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns True if there&#39;s at least &#39;minMatches&#39; matches between outSequence and any sequence </span>
+<span class="sd">    from &#39;group&#39;; False otherwise.</span>
+<span class="sd">    Size of all sequences is assumed to be equal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">inSequence</span> <span class="ow">in</span> <span class="n">group</span><span class="p">:</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">outSequence</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">outSequence</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">inSequence</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="n">matches</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">matches</span> <span class="o">&gt;=</span> <span class="n">minMatches</span><span class="p">:</span>  <span class="c"># As soon as a match is found</span>
+                <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">return</span> <span class="bp">False</span>
+
+</div>
+<div class="viewcode-block" id="makeGroupsFromFasta"><a class="viewcode-back" href="../../../pyprot.align.html#pyprot.align.blosum.makeGroupsFromFasta">[docs]</a><span class="k">def</span> <span class="nf">makeGroupsFromFasta</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">requiredIdentityPercent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loads Sequences from file at &#39;path&#39; and separate them in groups with an identity of </span>
+<span class="sd">    at least &#39;requiredIdentityPercent&#39;.</span>
+<span class="sd">    Returns a list representing the groups as lists of Protein objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sequences</span> <span class="o">=</span> <span class="p">[</span><span class="n">seq</span> <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">getSequencesFromFasta</span><span class="p">(</span><span class="n">path</span><span class="p">)]</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="p">[[</span><span class="n">sequences</span><span class="p">[</span><span class="mi">0</span><span class="p">]]]</span>  <span class="c"># First sequence is assigned to first group</span>
+
+    <span class="n">seqSize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sequences</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c"># Size of the sequences</span>
+
+    <span class="c"># Number of matches required to achieve requiredIdentityPercent</span>
+    <span class="n">minMatches</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">((</span><span class="n">requiredIdentityPercent</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span> <span class="o">*</span> <span class="n">seqSize</span><span class="p">)</span>
+
+    <span class="c"># For each outSequence not yet in a group</span>
+    <span class="k">for</span> <span class="n">outSequence</span> <span class="ow">in</span> <span class="n">sequences</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="n">groupFound</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># has a group been found ?</span>
+        <span class="n">groupIndex</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># index of the group we&#39;re looking in</span>
+
+        <span class="c"># Look for a group where outSequence belongs</span>
+        <span class="k">while</span> <span class="p">(</span><span class="ow">not</span> <span class="n">groupFound</span><span class="p">)</span> <span class="ow">and</span> <span class="n">groupIndex</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">groups</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">belongs</span><span class="p">(</span><span class="n">outSequence</span><span class="p">,</span> <span class="n">groups</span><span class="p">[</span><span class="n">groupIndex</span><span class="p">],</span> <span class="n">minMatches</span><span class="p">):</span>
+                <span class="n">groups</span><span class="p">[</span><span class="n">groupIndex</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outSequence</span><span class="p">)</span>
+                <span class="n">groupFound</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">groupIndex</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c"># Move on to next group</span>
+
+        <span class="c"># If no group works, create a new one</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">groupFound</span><span class="p">:</span>
+            <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">outSequence</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">groups</span>
+
+</div>
+<div class="viewcode-block" id="valueDictsFromGroups"><a class="viewcode-back" href="../../../pyprot.align.html#pyprot.align.blosum.valueDictsFromGroups">[docs]</a><span class="k">def</span> <span class="nf">valueDictsFromGroups</span><span class="p">(</span><span class="n">groups</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transforms each group from &#39;groups&#39; into a list of dictionaries, one for each Protein column.</span>
+<span class="sd">    The dictionaries map each AminoAcid found in that column to their count.</span>
+<span class="sd">    Returns the list of dictionaries and a list of the size (in Sequences) of their groups.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">seqSize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">groupCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span>
+
+    <span class="n">groupValues</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">groupSizes</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>  <span class="c"># For each group</span>
+        <span class="n">groupAAs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">groupSize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>  <span class="c"># Size of group (n sequences)</span>
+
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">seqSize</span><span class="p">):</span>  <span class="c"># For each column</span>
+            <span class="n">groupCol</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">group</span><span class="p">:</span>  <span class="c"># For each sequence in group</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">groupCol</span><span class="p">[</span><span class="n">seq</span><span class="p">[</span><span class="n">col</span><span class="p">]]</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c"># Increment count</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="n">groupCol</span><span class="p">[</span><span class="n">seq</span><span class="p">[</span><span class="n">col</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+
+            <span class="n">groupAAs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">groupCol</span><span class="p">)</span>
+        <span class="n">groupValues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">groupAAs</span><span class="p">)</span>
+        <span class="n">groupSizes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">groupSize</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">groupValues</span><span class="p">,</span> <span class="n">groupSizes</span>
+
+</div>
+<div class="viewcode-block" id="getFrequencies"><a class="viewcode-back" href="../../../pyprot.align.html#pyprot.align.blosum.getFrequencies">[docs]</a><span class="k">def</span> <span class="nf">getFrequencies</span><span class="p">(</span><span class="n">groupValues</span><span class="p">,</span> <span class="n">groupSizes</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Evaluates the frequencies of AminoAcids within columns of groups in &#39;groupValues&#39;.</span>
+<span class="sd">    Frequencies are weighted according to group sizes in &#39;groupSizes&#39;.</span>
+<span class="sd">    Returns two dictionaries and a number:</span>
+<span class="sd">    -&#39;freqPairs&#39; maps pairs of AminoAcids to their frequencies</span>
+<span class="sd">    -&#39;freqSingle&#39; maps single AminoAcids to their frequencies</span>
+<span class="sd">    -&#39;freqSum&#39; is the sum of all frequencies</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">seqSize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">groupValues</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c"># Size of the Sequences</span>
+    <span class="n">groupCount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">groupSizes</span><span class="p">)</span>  <span class="c"># Number of groups</span>
+
+    <span class="n">freqPairs</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># frequencies of amino acid pairs (fAB)</span>
+
+    <span class="c"># Frequencies of single amino acids (fA)</span>
+    <span class="n">freqSingle</span> <span class="o">=</span> <span class="p">{</span><span class="n">AminoAcid</span><span class="p">(</span><span class="n">aa</span><span class="p">):</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">aa</span> <span class="ow">in</span> <span class="n">AminoAcid</span><span class="o">.</span><span class="n">getAllNames</span><span class="p">()}</span>
+
+    <span class="n">freqSum</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># Sum of frequencies  sum(fAB)</span>
+
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">seqSize</span><span class="p">):</span>  <span class="c"># Each column</span>
+        <span class="k">for</span> <span class="n">groupAIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">groupCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>  <span class="c"># Each groupA</span>
+            <span class="n">groupA</span> <span class="o">=</span> <span class="n">groupValues</span><span class="p">[</span><span class="n">groupAIndex</span><span class="p">]</span>
+            <span class="n">groupASize</span> <span class="o">=</span> <span class="n">groupSizes</span><span class="p">[</span><span class="n">groupAIndex</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">groupBIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">groupAIndex</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">groupCount</span><span class="p">):</span>  <span class="c"># Each further groupB</span>
+                <span class="n">groupB</span> <span class="o">=</span> <span class="n">groupValues</span><span class="p">[</span><span class="n">groupBIndex</span><span class="p">]</span>
+                <span class="n">groupBSize</span> <span class="o">=</span> <span class="n">groupSizes</span><span class="p">[</span><span class="n">groupBIndex</span><span class="p">]</span>
+
+                <span class="k">for</span> <span class="n">aaA</span><span class="p">,</span> <span class="n">aaACount</span> <span class="ow">in</span> <span class="n">groupA</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>  <span class="c"># Each AA from groupA</span>
+                    <span class="n">aaAFreq</span> <span class="o">=</span> <span class="n">aaACount</span> <span class="o">/</span> <span class="n">groupASize</span>  <span class="c"># Its frequency within groupA</span>
+
+                    <span class="k">for</span> <span class="n">aaB</span><span class="p">,</span> <span class="n">aaBCount</span> <span class="ow">in</span> <span class="n">groupB</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>  <span class="c"># Each AA from groupB</span>
+                        <span class="n">aaBFreq</span> <span class="o">=</span> <span class="n">aaBCount</span> <span class="o">/</span> <span class="n">groupBSize</span>  <span class="c"># Its frequency within groupB</span>
+
+                        <span class="n">aaPairFreq</span> <span class="o">=</span> <span class="n">aaAFreq</span> <span class="o">*</span> <span class="n">aaBFreq</span>  <span class="c"># Pair frequency</span>
+                        <span class="n">freqSum</span> <span class="o">+=</span> <span class="n">aaPairFreq</span>  <span class="c"># Sum of all frequencies</span>
+                        <span class="n">freqSingle</span><span class="p">[</span><span class="n">aaA</span><span class="p">]</span> <span class="o">+=</span> <span class="n">aaPairFreq</span> <span class="o">/</span> <span class="mi">2</span>
+                        <span class="n">freqSingle</span><span class="p">[</span><span class="n">aaB</span><span class="p">]</span> <span class="o">+=</span> <span class="n">aaPairFreq</span> <span class="o">/</span> <span class="mi">2</span>
+
+                        <span class="c"># Index is unique to this pair</span>
+                        <span class="n">pairIndex</span> <span class="o">=</span> <span class="p">(</span><span class="n">aaA</span><span class="p">,</span> <span class="n">aaB</span><span class="p">)</span> <span class="k">if</span> <span class="n">aaA</span> <span class="o">&gt;</span> <span class="n">aaB</span> <span class="k">else</span> <span class="p">(</span><span class="n">aaB</span><span class="p">,</span> <span class="n">aaA</span><span class="p">)</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">freqPairs</span><span class="p">[</span><span class="n">pairIndex</span><span class="p">]</span> <span class="o">+=</span> <span class="n">aaPairFreq</span>
+                        <span class="k">except</span><span class="p">:</span>
+                            <span class="n">freqPairs</span><span class="p">[</span><span class="n">pairIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">aaPairFreq</span>
+
+    <span class="k">return</span> <span class="n">freqPairs</span><span class="p">,</span> <span class="n">freqSingle</span><span class="p">,</span> <span class="n">freqSum</span>
+
+</div>
+<div class="viewcode-block" id="sumFrequenciesToProb"><a class="viewcode-back" href="../../../pyprot.align.html#pyprot.align.blosum.sumFrequenciesToProb">[docs]</a><span class="k">def</span> <span class="nf">sumFrequenciesToProb</span><span class="p">(</span><span class="n">freqPairsList</span><span class="p">,</span> <span class="n">freqSingleList</span><span class="p">,</span> <span class="n">freqSumList</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sums all frequencies in provided lists, and transforms them to probabilities according</span>
+<span class="sd">    to the sum of frequencies found in &#39;freqSumList&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fSum</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">freqSumList</span><span class="p">)</span>  <span class="c"># Absolute sum of all frequencies</span>
+    <span class="n">probPairs</span><span class="p">,</span> <span class="n">probSingle</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{}</span>  <span class="c"># Probabilities for pairs and single AAs</span>
+
+    <span class="k">for</span> <span class="n">freqPairs</span><span class="p">,</span> <span class="n">freqSingle</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">freqPairsList</span><span class="p">,</span> <span class="n">freqSingleList</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">freqPairs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c"># Sum all frequencies for matching AA pairs, divided by fSum</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">probPairs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="n">value</span> <span class="o">/</span> <span class="n">fSum</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">probPairs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span> <span class="o">/</span> <span class="n">fSum</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">freqSingle</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c"># Sum all frequencies for matching AAs, divided by fSum</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">probSingle</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="n">value</span> <span class="o">/</span> <span class="n">fSum</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">probSingle</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span> <span class="o">/</span> <span class="n">fSum</span>
+
+    <span class="k">return</span> <span class="n">probPairs</span><span class="p">,</span> <span class="n">probSingle</span>
+
+</div>
+<div class="viewcode-block" id="blosumFromProbabilities"><a class="viewcode-back" href="../../../pyprot.align.html#pyprot.align.blosum.blosumFromProbabilities">[docs]</a><span class="k">def</span> <span class="nf">blosumFromProbabilities</span><span class="p">(</span><span class="n">probPairs</span><span class="p">,</span> <span class="n">probSingle</span><span class="p">,</span> <span class="n">requiredIdentityPercent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fills and returns a Score according to the BLOSUM algorithm, from the probabilities</span>
+<span class="sd">    of AA pairs and singletons provided in &#39;probPairs&#39; and &#39;probSingle&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Create empty Score, ignoring AAs B,Z,J,U,O</span>
+    <span class="n">scoreMatrix</span> <span class="o">=</span> <span class="n">ScoreMatrix</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;BLOSUM{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">requiredIdentityPercent</span><span class="p">),</span> <span class="s">&quot;BZJUO&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">qAB</span> <span class="ow">in</span> <span class="n">probPairs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c"># qAB is the evolutionary probability of the AA pair (A,B)</span>
+        <span class="n">aaA</span><span class="p">,</span> <span class="n">aaB</span> <span class="o">=</span> <span class="n">key</span>  <span class="c"># Both amino acids</span>
+        <span class="n">pA</span><span class="p">,</span> <span class="n">pB</span> <span class="o">=</span> <span class="n">probSingle</span><span class="p">[</span><span class="n">aaA</span><span class="p">],</span> <span class="n">probSingle</span><span class="p">[</span><span class="n">aaB</span><span class="p">]</span>  <span class="c"># Their single probabilities</span>
+
+        <span class="c"># eAB is the random probability of the AA pair (A, B) given their single probabilities</span>
+        <span class="n">eAB</span> <span class="o">=</span> <span class="n">pA</span> <span class="o">*</span> <span class="n">pA</span> <span class="k">if</span> <span class="n">aaA</span> <span class="o">==</span> <span class="n">aaB</span> <span class="k">else</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">pA</span> <span class="o">*</span> <span class="n">pB</span>
+
+        <span class="c"># The BLOSUM score for this pair is the log-odds-ratio of evolutionary and random prob.</span>
+        <span class="n">sAB</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="n">qAB</span> <span class="o">/</span> <span class="n">eAB</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span>
+        <span class="n">scoreMatrix</span><span class="o">.</span><span class="n">setScore</span><span class="p">(</span><span class="n">aaA</span><span class="p">,</span> <span class="n">aaB</span><span class="p">,</span> <span class="n">sAB</span><span class="p">)</span>  <span class="c"># Fill the matrix</span>
+
+    <span class="k">return</span> <span class="n">scoreMatrix</span>
+
+</div>
+<div class="viewcode-block" id="blosumFromFasta"><a class="viewcode-back" href="../../../pyprot.align.html#pyprot.align.blosum.blosumFromFasta">[docs]</a><span class="k">def</span> <span class="nf">blosumFromFasta</span><span class="p">(</span><span class="n">requiredIdentityPercent</span><span class="p">,</span> <span class="o">*</span><span class="n">filepaths</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates and returns a ScoreMatrix for all sequences in the provided &#39;filepaths&#39;,</span>
+<span class="sd">    using the BLOSUM approach with an identity of at least &#39;requiredIdentityPercent&#39;.</span>
+<span class="sd">    Each file is grouped independently and only then their weighted probabilities are merged.</span>
+<span class="sd">    :param requiredIdentityPercent: </span>
+<span class="sd">    :param filepaths: </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Results for each different files are first stored in lists</span>
+    <span class="n">freqPairsList</span><span class="p">,</span> <span class="n">freqSingleList</span><span class="p">,</span> <span class="n">freqSumList</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">filepaths</span><span class="p">:</span>  <span class="c"># for each .fasta file</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">makeGroupsFromFasta</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">requiredIdentityPercent</span><span class="p">)</span>  <span class="c"># groups</span>
+        <span class="n">groupValues</span><span class="p">,</span> <span class="n">groupSizes</span> <span class="o">=</span> <span class="n">valueDictsFromGroups</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span>  <span class="c"># groups as dicts</span>
+        <span class="n">freqPairs</span><span class="p">,</span> <span class="n">freqSingle</span><span class="p">,</span> <span class="n">freqSum</span> <span class="o">=</span> <span class="n">getFrequencies</span><span class="p">(</span><span class="n">groupValues</span><span class="p">,</span> <span class="n">groupSizes</span><span class="p">)</span>  <span class="c"># frequencies</span>
+
+        <span class="n">freqPairsList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">freqPairs</span><span class="p">)</span>  <span class="c"># Append results</span>
+        <span class="n">freqSingleList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">freqSingle</span><span class="p">)</span>
+        <span class="n">freqSumList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">freqSum</span><span class="p">)</span>
+
+    <span class="c"># Merge (sum) results together</span>
+    <span class="n">probPairs</span><span class="p">,</span> <span class="n">probSingle</span> <span class="o">=</span> <span class="n">sumFrequenciesToProb</span><span class="p">(</span><span class="n">freqPairsList</span><span class="p">,</span> <span class="n">freqSingleList</span><span class="p">,</span> <span class="n">freqSumList</span><span class="p">)</span>
+    <span class="c"># Create the BLOSUM matrix</span>
+    <span class="n">blosum</span> <span class="o">=</span> <span class="n">blosumFromProbabilities</span><span class="p">(</span><span class="n">probPairs</span><span class="p">,</span> <span class="n">probSingle</span><span class="p">,</span> <span class="n">requiredIdentityPercent</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">blosum</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Stanislas Gueniffey.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

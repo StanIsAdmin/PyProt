@@ -1,0 +1,202 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyprot.base.sequence &mdash; pyprot alpha documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     'alpha',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pyprot alpha documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyprot.base.sequence</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">from</span> <span class="nn">pyprot.base.aminoacid</span> <span class="kn">import</span> <span class="n">AminoAcid</span>
+
+
+<div class="viewcode-block" id="Sequence"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.sequence.Sequence">[docs]</a><span class="k">class</span> <span class="nc">Sequence</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a sequence of amino acids.</span>
+<span class="sd">    Inherits from list, and ensures all items are of type AminoAcid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Sequence.__init__"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.sequence.Sequence.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aminoAcids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a Sequence object that represents the amino acid sequence contained in aminoAcids.</span>
+<span class="sd">        aminoAcids can be one of the following :</span>
+<span class="sd">        - None, meaning the Sequence is empty (default)</span>
+<span class="sd">        - an AminoAcid object</span>
+<span class="sd">        - a string of X AminoAcid short (uppercase) names or 1 AminoAcid name</span>
+<span class="sd">        - a list containing AminoAcid objects and/or strings of individual AminoAcid names</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nameMode</span> <span class="o">=</span> <span class="s">&quot;short&quot;</span>  <span class="c"># the way in which AA names are displayed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_separator</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>  <span class="c"># how to separate AA names when displayed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_description</span> <span class="o">=</span> <span class="n">description</span>  <span class="c"># description of the sequence</span>
+
+        <span class="c"># if copy constructor, copy attributes</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aminoAcids</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nameMode</span> <span class="o">=</span> <span class="n">aminoAcids</span><span class="o">.</span><span class="n">_nameMode</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_separator</span> <span class="o">=</span> <span class="n">aminoAcids</span><span class="o">.</span><span class="n">_separator</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_description</span> <span class="o">==</span> <span class="s">&quot;&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_description</span> <span class="o">=</span> <span class="n">aminoAcids</span><span class="o">.</span><span class="n">_description</span>
+
+        <span class="c"># format aminoAcids into a list of AminoAcid objects, and add it to list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">Sequence</span><span class="o">.</span><span class="n">__formatList</span><span class="p">(</span><span class="n">aminoAcids</span><span class="p">))</span>
+</div>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__formatList</span><span class="p">(</span><span class="n">aminoAcids</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Formats &#39;aminoAcids&#39; into a list of AminoAcid objects.&quot;&quot;&quot;</span>
+
+        <span class="c"># No amino acids result in an empty list</span>
+        <span class="k">if</span> <span class="n">aminoAcids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="c"># A single AminoAcid is copied and put within a list</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aminoAcids</span><span class="p">,</span> <span class="n">AminoAcid</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">AminoAcid</span><span class="p">(</span><span class="n">aminoAcids</span><span class="p">)]</span>  <span class="c"># Copy constructor</span>
+
+        <span class="c"># A string is converted to a list, based on its</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aminoAcids</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">aminoAcids</span><span class="o">.</span><span class="n">isupper</span><span class="p">():</span>  <span class="c"># Multiple Amino Acids in short name mode</span>
+                <span class="k">return</span> <span class="p">[</span><span class="n">AminoAcid</span><span class="p">(</span><span class="n">aa</span><span class="p">)</span> <span class="k">for</span> <span class="n">aa</span> <span class="ow">in</span> <span class="n">aminoAcids</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c"># A single Amino Acid with any name mode</span>
+                <span class="k">return</span> <span class="p">[</span><span class="n">AminoAcid</span><span class="p">(</span><span class="n">aminoAcids</span><span class="p">)]</span>
+
+        <span class="c"># A list is copied with all of its items converted to AminoAcid objects</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aminoAcids</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">AminoAcid</span><span class="p">(</span><span class="n">aa</span><span class="p">)</span> <span class="k">for</span> <span class="n">aa</span> <span class="ow">in</span> <span class="n">aminoAcids</span><span class="p">]</span>
+
+        <span class="c"># No other supported types</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;aminoAcids must be a Sequence, list, AminoAcid object, string or None&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Representation&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;String conversion&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_separator</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">aa</span><span class="o">.</span><span class="n">getName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nameMode</span><span class="p">)</span> <span class="k">for</span> <span class="n">aa</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">])</span>
+
+<div class="viewcode-block" id="Sequence.setDescription"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.sequence.Sequence.setDescription">[docs]</a>    <span class="k">def</span> <span class="nf">setDescription</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the base&#39;s description&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_description</span> <span class="o">=</span> <span class="n">description</span>
+</div>
+<div class="viewcode-block" id="Sequence.getDescription"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.sequence.Sequence.getDescription">[docs]</a>    <span class="k">def</span> <span class="nf">getDescription</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the base&#39;s description.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_description</span>
+</div>
+<div class="viewcode-block" id="Sequence.setNameMode"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.sequence.Sequence.setNameMode">[docs]</a>    <span class="k">def</span> <span class="nf">setNameMode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newMode</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Changes the name display mode to &#39;newMode&#39;.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">newMode</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&quot;long&quot;</span><span class="p">,</span> <span class="s">&quot;medium&quot;</span><span class="p">,</span> <span class="s">&quot;short&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nameMode</span> <span class="o">=</span> <span class="n">newMode</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;newMode must be &#39;long&#39;, &#39;medium&#39; or &#39;short&#39;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Sequence.setSeparator"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.sequence.Sequence.setSeparator">[docs]</a>    <span class="k">def</span> <span class="nf">setSeparator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newSep</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Changes the string that separates each displayed AminoAcid.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_separator</span> <span class="o">=</span> <span class="n">newSep</span>
+</div>
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets value for a slice of the sequence&quot;&quot;&quot;</span>
+        <span class="nb">list</span><span class="o">.</span><span class="n">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">AminoAcid</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Sequence.insert"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.sequence.Sequence.insert">[docs]</a>    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">aminoAcids</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Inserts aminoAcids into the base at index &#39;index&#39;.</span>
+<span class="sd">        List objects will not be embedded as is, instead their items will be inserted in the same order, individually.</span>
+<span class="sd">        @param aminoAcids must be compatible with the Sequence constructor</span>
+<span class="sd">        @param index is the index at which aminoAcids is inserted</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">aa</span> <span class="ow">in</span> <span class="n">Sequence</span><span class="o">.</span><span class="n">__formatList</span><span class="p">(</span><span class="n">aminoAcids</span><span class="p">):</span>
+            <span class="nb">list</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">aa</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+</div>
+<div class="viewcode-block" id="Sequence.extend"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.sequence.Sequence.extend">[docs]</a>    <span class="k">def</span> <span class="nf">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aminoAcids</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extends the base by adding &#39;aminoAcids&#39; at its end.</span>
+<span class="sd">        @param aminoAcids must be compatible with the Sequence constructor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Sequence</span><span class="o">.</span><span class="n">__formatList</span><span class="p">(</span><span class="n">aminoAcids</span><span class="p">))</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Stanislas Gueniffey.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

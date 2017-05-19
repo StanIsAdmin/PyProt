@@ -1,0 +1,179 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyprot.structure package &mdash; pyprot alpha documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     'alpha',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyprot alpha documentation" href="index.html" />
+    <link rel="up" title="pyprot package" href="pyprot.html" />
+    <link rel="prev" title="pyprot.data package" href="pyprot.data.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyprot.data.html" title="pyprot.data package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="pyprot.html" accesskey="U">pyprot package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pyprot-structure-package">
+<h1>pyprot.structure package<a class="headerlink" href="#pyprot-structure-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pyprot.structure.gor">
+<span id="pyprot-structure-gor-module"></span><h2>pyprot.structure.gor module<a class="headerlink" href="#module-pyprot.structure.gor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyprot.structure.gor.GOR3">
+<em class="property">class </em><tt class="descname">GOR3</tt><a class="reference internal" href="_modules/pyprot/structure/gor.html#GOR3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.structure.gor.GOR3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.object</span></tt></p>
+<p>Implements the GOR III secondary structure prediction algorithm.
+Objects of this class must be trained with known examples of sequences and their structure
+before being able to predict the structures of new sequences.</p>
+<dl class="method">
+<dt id="pyprot.structure.gor.GOR3.__init__">
+<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyprot/structure/gor.html#GOR3.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.structure.gor.GOR3.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyprot.structure.gor.GOR3.getQuality">
+<tt class="descname">getQuality</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyprot/structure/gor.html#GOR3.getQuality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.structure.gor.GOR3.getQuality" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyprot.structure.gor.GOR3.getStructures">
+<tt class="descname">getStructures</tt><big>(</big><em>exclude=None</em><big>)</big><a class="reference internal" href="_modules/pyprot/structure/gor.html#GOR3.getStructures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.structure.gor.GOR3.getStructures" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyprot.structure.gor.GOR3.neighbourOffsets">
+<tt class="descname">neighbourOffsets</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyprot/structure/gor.html#GOR3.neighbourOffsets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.structure.gor.GOR3.neighbourOffsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyprot.structure.gor.GOR3.neighbourValues">
+<tt class="descname">neighbourValues</tt><big>(</big><em>sequence</em>, <em>index</em><big>)</big><a class="reference internal" href="_modules/pyprot/structure/gor.html#GOR3.neighbourValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.structure.gor.GOR3.neighbourValues" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyprot.structure.gor.GOR3.plotROC">
+<tt class="descname">plotROC</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyprot/structure/gor.html#GOR3.plotROC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.structure.gor.GOR3.plotROC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyprot.structure.gor.GOR3.predict">
+<tt class="descname">predict</tt><big>(</big><em>sequence</em>, <em>realStructure=None</em><big>)</big><a class="reference internal" href="_modules/pyprot/structure/gor.html#GOR3.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.structure.gor.GOR3.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the predicted structure of &#8216;sequence&#8217;, based on received training.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyprot.structure.gor.GOR3.train">
+<tt class="descname">train</tt><big>(</big><em>sequence</em>, <em>structure</em><big>)</big><a class="reference internal" href="_modules/pyprot/structure/gor.html#GOR3.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.structure.gor.GOR3.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trains the system with a known example of a sequence and its structure.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyprot.structure">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyprot.structure" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">pyprot.structure package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-pyprot.structure.gor">pyprot.structure.gor module</a></li>
+<li><a class="reference internal" href="#module-pyprot.structure">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pyprot.data.html"
+                        title="previous chapter">pyprot.data package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pyprot.structure.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyprot.data.html" title="pyprot.data package"
+             >previous</a> |</li>
+        <li><a href="index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="pyprot.html" >pyprot package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Stanislas Gueniffey.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

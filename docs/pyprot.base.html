@@ -1,0 +1,270 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyprot.base package &mdash; pyprot alpha documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     'alpha',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyprot alpha documentation" href="index.html" />
+    <link rel="up" title="pyprot package" href="pyprot.html" />
+    <link rel="next" title="pyprot.base.test package" href="pyprot.base.test.html" />
+    <link rel="prev" title="pyprot.align package" href="pyprot.align.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyprot.base.test.html" title="pyprot.base.test package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pyprot.align.html" title="pyprot.align package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="pyprot.html" accesskey="U">pyprot package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pyprot-base-package">
+<h1>pyprot.base package<a class="headerlink" href="#pyprot-base-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pyprot.base.test.html">pyprot.base.test package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pyprot.base.test.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyprot.base.test.html#module-pyprot.base.test.test_aminoacid">pyprot.base.test.test_aminoacid module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyprot.base.test.html#module-pyprot.base.test.test_sequence">pyprot.base.test.test_sequence module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyprot.base.test.html#module-pyprot.base.test">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pyprot.base.aminoacid">
+<span id="pyprot-base-aminoacid-module"></span><h2>pyprot.base.aminoacid module<a class="headerlink" href="#module-pyprot.base.aminoacid" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyprot.base.aminoacid.AminoAcid">
+<em class="property">class </em><tt class="descname">AminoAcid</tt><big>(</big><em>aminoAcid</em><big>)</big><a class="reference internal" href="_modules/pyprot/base/aminoacid.html#AminoAcid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.aminoacid.AminoAcid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.object</span></tt></p>
+<p>Represents one of the amino acids that can be found in genetic sequences.
+Can be one of the following :
+- any of the twenty amino acids
+- any of four combinations of possible amino acids
+- selenocysteine, pyrrolysine, a gap or termination codon
+The full list of possible amino acids is defined by AA_NAMES.</p>
+<dl class="method">
+<dt id="pyprot.base.aminoacid.AminoAcid.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>aminoAcid</em><big>)</big><a class="reference internal" href="_modules/pyprot/base/aminoacid.html#AminoAcid.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.aminoacid.AminoAcid.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an AminoAcid object representing one of the possible amino acids.
+&#64;param aminoAcid can be the name of an amino acid, or an AminoAcid object (in which case a copy is created).</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pyprot.base.aminoacid.AminoAcid.getAllNames">
+<em class="property">static </em><tt class="descname">getAllNames</tt><big>(</big><em>nameMode='short'</em><big>)</big><a class="reference internal" href="_modules/pyprot/base/aminoacid.html#AminoAcid.getAllNames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.aminoacid.AminoAcid.getAllNames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields the names of all represented amino acids, excepting gaps and termination codons.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyprot.base.aminoacid.AminoAcid.getName">
+<tt class="descname">getName</tt><big>(</big><em>nameMode='short'</em><big>)</big><a class="reference internal" href="_modules/pyprot/base/aminoacid.html#AminoAcid.getName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.aminoacid.AminoAcid.getName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="pyprot.base.aminoacid.AminoAcid.getNames">
+<em class="property">static </em><tt class="descname">getNames</tt><big>(</big><em>nameMode='short'</em><big>)</big><a class="reference internal" href="_modules/pyprot/base/aminoacid.html#AminoAcid.getNames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.aminoacid.AminoAcid.getNames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields the names of the 20 basic amino acids.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pyprot.base.aminoacid.AminoAcid.getNamesInRange">
+<em class="property">static </em><tt class="descname">getNamesInRange</tt><big>(</big><em>startIndex</em>, <em>stopIndex</em>, <em>nameMode='short'</em><big>)</big><a class="reference internal" href="_modules/pyprot/base/aminoacid.html#AminoAcid.getNamesInRange"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.aminoacid.AminoAcid.getNamesInRange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields the names of amino acids in AA_NAMES, from startIndex to stopIndex (excluded).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyprot.base.aminoacid.AminoAcid.isGap">
+<tt class="descname">isGap</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyprot/base/aminoacid.html#AminoAcid.isGap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.aminoacid.AminoAcid.isGap" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if this amino acid is a gap, false otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyprot.base.aminoacid.AminoAcid.isTermination">
+<tt class="descname">isTermination</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyprot/base/aminoacid.html#AminoAcid.isTermination"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.aminoacid.AminoAcid.isTermination" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if this amino acid is a termination codon, false otherwise.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyprot.base.sequence">
+<span id="pyprot-base-sequence-module"></span><h2>pyprot.base.sequence module<a class="headerlink" href="#module-pyprot.base.sequence" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyprot.base.sequence.Sequence">
+<em class="property">class </em><tt class="descname">Sequence</tt><big>(</big><em>aminoAcids=None</em>, <em>description=''</em><big>)</big><a class="reference internal" href="_modules/pyprot/base/sequence.html#Sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.sequence.Sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.list</span></tt></p>
+<p>Represents a sequence of amino acids.
+Inherits from list, and ensures all items are of type AminoAcid.</p>
+<dl class="method">
+<dt id="pyprot.base.sequence.Sequence.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>aminoAcids=None</em>, <em>description=''</em><big>)</big><a class="reference internal" href="_modules/pyprot/base/sequence.html#Sequence.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.sequence.Sequence.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a Sequence object that represents the amino acid sequence contained in aminoAcids.
+aminoAcids can be one of the following :
+- None, meaning the Sequence is empty (default)
+- an AminoAcid object
+- a string of X AminoAcid short (uppercase) names or 1 AminoAcid name
+- a list containing AminoAcid objects and/or strings of individual AminoAcid names</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyprot.base.sequence.Sequence.extend">
+<tt class="descname">extend</tt><big>(</big><em>aminoAcids</em><big>)</big><a class="reference internal" href="_modules/pyprot/base/sequence.html#Sequence.extend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.sequence.Sequence.extend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extends the base by adding &#8216;aminoAcids&#8217; at its end.
+&#64;param aminoAcids must be compatible with the Sequence constructor</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyprot.base.sequence.Sequence.getDescription">
+<tt class="descname">getDescription</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyprot/base/sequence.html#Sequence.getDescription"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.sequence.Sequence.getDescription" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the base&#8217;s description.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyprot.base.sequence.Sequence.insert">
+<tt class="descname">insert</tt><big>(</big><em>index</em>, <em>aminoAcids</em><big>)</big><a class="reference internal" href="_modules/pyprot/base/sequence.html#Sequence.insert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.sequence.Sequence.insert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inserts aminoAcids into the base at index &#8216;index&#8217;.
+List objects will not be embedded as is, instead their items will be inserted in the same order, individually.
+&#64;param aminoAcids must be compatible with the Sequence constructor
+&#64;param index is the index at which aminoAcids is inserted</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyprot.base.sequence.Sequence.setDescription">
+<tt class="descname">setDescription</tt><big>(</big><em>description</em><big>)</big><a class="reference internal" href="_modules/pyprot/base/sequence.html#Sequence.setDescription"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.sequence.Sequence.setDescription" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the base&#8217;s description</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyprot.base.sequence.Sequence.setNameMode">
+<tt class="descname">setNameMode</tt><big>(</big><em>newMode</em><big>)</big><a class="reference internal" href="_modules/pyprot/base/sequence.html#Sequence.setNameMode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.sequence.Sequence.setNameMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Changes the name display mode to &#8216;newMode&#8217;.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyprot.base.sequence.Sequence.setSeparator">
+<tt class="descname">setSeparator</tt><big>(</big><em>newSep</em><big>)</big><a class="reference internal" href="_modules/pyprot/base/sequence.html#Sequence.setSeparator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.base.sequence.Sequence.setSeparator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Changes the string that separates each displayed AminoAcid.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyprot.base">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyprot.base" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">pyprot.base package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-pyprot.base.aminoacid">pyprot.base.aminoacid module</a></li>
+<li><a class="reference internal" href="#module-pyprot.base.sequence">pyprot.base.sequence module</a></li>
+<li><a class="reference internal" href="#module-pyprot.base">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pyprot.align.html"
+                        title="previous chapter">pyprot.align package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pyprot.base.test.html"
+                        title="next chapter">pyprot.base.test package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pyprot.base.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyprot.base.test.html" title="pyprot.base.test package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pyprot.align.html" title="pyprot.align package"
+             >previous</a> |</li>
+        <li><a href="index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="pyprot.html" >pyprot package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Stanislas Gueniffey.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyprot.base.test.test_aminoacid &mdash; pyprot alpha documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     'alpha',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="pyprot alpha documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyprot.base.test.test_aminoacid</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">unittest</span> <span class="kn">import</span> <span class="n">TestCase</span>
+
+<span class="kn">from</span> <span class="nn">pyprot.base.aminoacid</span> <span class="kn">import</span> <span class="n">AminoAcid</span>
+
+
+<div class="viewcode-block" id="TestAminoAcid"><a class="viewcode-back" href="../../../../pyprot.base.test.html#pyprot.base.test.test_aminoacid.TestAminoAcid">[docs]</a><span class="k">class</span> <span class="nc">TestAminoAcid</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="TestAminoAcid.canCreateAminoAcid"><a class="viewcode-back" href="../../../../pyprot.base.test.html#pyprot.base.test.test_aminoacid.TestAminoAcid.canCreateAminoAcid">[docs]</a>    <span class="k">def</span> <span class="nf">canCreateAminoAcid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">aa</span> <span class="o">=</span> <span class="n">AminoAcid</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="TestAminoAcid.test_getNames"><a class="viewcode-back" href="../../../../pyprot.base.test.html#pyprot.base.test.test_aminoacid.TestAminoAcid.test_getNames">[docs]</a>    <span class="k">def</span> <span class="nf">test_getNames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">nameMode</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&quot;short&quot;</span><span class="p">,</span> <span class="s">&quot;medium&quot;</span><span class="p">,</span> <span class="s">&quot;long&quot;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">AminoAcid</span><span class="o">.</span><span class="n">getNames</span><span class="p">(</span><span class="n">nameMode</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">canCreateAminoAcid</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestAminoAcid.test_getAllNames"><a class="viewcode-back" href="../../../../pyprot.base.test.html#pyprot.base.test.test_aminoacid.TestAminoAcid.test_getAllNames">[docs]</a>    <span class="k">def</span> <span class="nf">test_getAllNames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">nameMode</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&quot;short&quot;</span><span class="p">,</span> <span class="s">&quot;medium&quot;</span><span class="p">,</span> <span class="s">&quot;long&quot;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">AminoAcid</span><span class="o">.</span><span class="n">getAllNames</span><span class="p">(</span><span class="n">nameMode</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">canCreateAminoAcid</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestAminoAcid.test_getName"><a class="viewcode-back" href="../../../../pyprot.base.test.html#pyprot.base.test.test_aminoacid.TestAminoAcid.test_getName">[docs]</a>    <span class="k">def</span> <span class="nf">test_getName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">aa</span> <span class="o">=</span> <span class="n">AminoAcid</span><span class="p">(</span><span class="s">&quot;ala&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="s">&quot;A&quot;</span><span class="p">,</span> <span class="n">aa</span><span class="o">.</span><span class="n">getName</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="TestAminoAcid.test_isGap"><a class="viewcode-back" href="../../../../pyprot.base.test.html#pyprot.base.test.test_aminoacid.TestAminoAcid.test_isGap">[docs]</a>    <span class="k">def</span> <span class="nf">test_isGap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">aa</span> <span class="o">=</span> <span class="n">AminoAcid</span><span class="p">(</span><span class="s">&quot;gap&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">aa</span><span class="o">.</span><span class="n">isGap</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="TestAminoAcid.test_isTermination"><a class="viewcode-back" href="../../../../pyprot.base.test.html#pyprot.base.test.test_aminoacid.TestAminoAcid.test_isTermination">[docs]</a>    <span class="k">def</span> <span class="nf">test_isTermination</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">aa</span> <span class="o">=</span> <span class="n">AminoAcid</span><span class="p">(</span><span class="s">&quot;term&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">aa</span><span class="o">.</span><span class="n">isTermination</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="TestAminoAcid.test_hashValuesAreEqual"><a class="viewcode-back" href="../../../../pyprot.base.test.html#pyprot.base.test.test_aminoacid.TestAminoAcid.test_hashValuesAreEqual">[docs]</a>    <span class="k">def</span> <span class="nf">test_hashValuesAreEqual</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">aa1</span> <span class="o">=</span> <span class="n">AminoAcid</span><span class="p">(</span><span class="s">&quot;ala&quot;</span><span class="p">)</span>
+        <span class="n">aa2</span> <span class="o">=</span> <span class="n">AminoAcid</span><span class="p">(</span><span class="s">&quot;A&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="nb">hash</span><span class="p">(</span><span class="n">aa1</span><span class="p">),</span> <span class="nb">hash</span><span class="p">(</span><span class="n">aa2</span><span class="p">))</span>
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">TestAminoAcid</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Stanislas Gueniffey.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyprot.base.aminoacid &mdash; pyprot alpha documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     'alpha',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pyprot alpha documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyprot.base.aminoacid</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="n">AA_NAMES</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span><span class="s">&quot;alanine&quot;</span><span class="p">,</span> <span class="s">&quot;ala&quot;</span><span class="p">,</span> <span class="s">&quot;A&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;cysteine&quot;</span><span class="p">,</span> <span class="s">&quot;cys&quot;</span><span class="p">,</span> <span class="s">&quot;C&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;aspartate&quot;</span><span class="p">,</span> <span class="s">&quot;asp&quot;</span><span class="p">,</span> <span class="s">&quot;D&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;glutamate&quot;</span><span class="p">,</span> <span class="s">&quot;glu&quot;</span><span class="p">,</span> <span class="s">&quot;E&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;phenylalanine&quot;</span><span class="p">,</span> <span class="s">&quot;phe&quot;</span><span class="p">,</span> <span class="s">&quot;F&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;glycine&quot;</span><span class="p">,</span> <span class="s">&quot;gly&quot;</span><span class="p">,</span> <span class="s">&quot;G&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;histidine&quot;</span><span class="p">,</span> <span class="s">&quot;his&quot;</span><span class="p">,</span> <span class="s">&quot;H&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;isoleucine&quot;</span><span class="p">,</span> <span class="s">&quot;ile&quot;</span><span class="p">,</span> <span class="s">&quot;I&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;lysine&quot;</span><span class="p">,</span> <span class="s">&quot;lys&quot;</span><span class="p">,</span> <span class="s">&quot;K&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;leucine&quot;</span><span class="p">,</span> <span class="s">&quot;leu&quot;</span><span class="p">,</span> <span class="s">&quot;L&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;methionine&quot;</span><span class="p">,</span> <span class="s">&quot;met&quot;</span><span class="p">,</span> <span class="s">&quot;M&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;asparagine&quot;</span><span class="p">,</span> <span class="s">&quot;asn&quot;</span><span class="p">,</span> <span class="s">&quot;N&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;proline&quot;</span><span class="p">,</span> <span class="s">&quot;pro&quot;</span><span class="p">,</span> <span class="s">&quot;P&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;glutamine&quot;</span><span class="p">,</span> <span class="s">&quot;gln&quot;</span><span class="p">,</span> <span class="s">&quot;Q&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;arginine&quot;</span><span class="p">,</span> <span class="s">&quot;arg&quot;</span><span class="p">,</span> <span class="s">&quot;R&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;serine&quot;</span><span class="p">,</span> <span class="s">&quot;ser&quot;</span><span class="p">,</span> <span class="s">&quot;S&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;threonine&quot;</span><span class="p">,</span> <span class="s">&quot;thr&quot;</span><span class="p">,</span> <span class="s">&quot;T&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;valine&quot;</span><span class="p">,</span> <span class="s">&quot;val&quot;</span><span class="p">,</span> <span class="s">&quot;V&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;tryptophan&quot;</span><span class="p">,</span> <span class="s">&quot;trp&quot;</span><span class="p">,</span> <span class="s">&quot;W&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;tyrosine&quot;</span><span class="p">,</span> <span class="s">&quot;tyr&quot;</span><span class="p">,</span> <span class="s">&quot;Y&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;selenocysteine&quot;</span><span class="p">,</span> <span class="s">&quot;sec&quot;</span><span class="p">,</span> <span class="s">&quot;U&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;pyrrolysine&quot;</span><span class="p">,</span> <span class="s">&quot;pyl&quot;</span><span class="p">,</span> <span class="s">&quot;O&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;asparagine/aspartate&quot;</span><span class="p">,</span> <span class="s">&quot;asx&quot;</span><span class="p">,</span> <span class="s">&quot;B&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;glutamine/glutamate&quot;</span><span class="p">,</span> <span class="s">&quot;glx&quot;</span><span class="p">,</span> <span class="s">&quot;Z&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;leucine/isoleucine&quot;</span><span class="p">,</span> <span class="s">&quot;xle&quot;</span><span class="p">,</span> <span class="s">&quot;J&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;undetermined&quot;</span><span class="p">,</span> <span class="s">&quot;xaa&quot;</span><span class="p">,</span> <span class="s">&quot;X&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;gap&quot;</span><span class="p">,</span> <span class="s">&quot;gap&quot;</span><span class="p">,</span> <span class="s">&quot;-&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;termination&quot;</span><span class="p">,</span> <span class="s">&quot;term&quot;</span><span class="p">,</span> <span class="s">&quot;|&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">AA_NAMES_CLASSIC_RANGE</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">AA_NAMES_EXTENDED_RANGE</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">26</span><span class="p">)</span>
+<span class="n">AA_NAMES_GAP_INDEX</span> <span class="o">=</span> <span class="mi">26</span>
+<span class="n">AA_NAMES_TERM_INDEX</span> <span class="o">=</span> <span class="mi">27</span>
+
+
+<div class="viewcode-block" id="AminoAcid"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.aminoacid.AminoAcid">[docs]</a><span class="k">class</span> <span class="nc">AminoAcid</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents one of the amino acids that can be found in genetic sequences.</span>
+<span class="sd">    Can be one of the following :</span>
+<span class="sd">    - any of the twenty amino acids</span>
+<span class="sd">    - any of four combinations of possible amino acids</span>
+<span class="sd">    - selenocysteine, pyrrolysine, a gap or termination codon</span>
+<span class="sd">    The full list of possible amino acids is defined by AA_NAMES.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># Dictionary mapping name to id</span>
+    <span class="n">_nameDict</span> <span class="o">=</span> <span class="p">{</span><span class="n">AA_NAMES</span><span class="p">[</span><span class="nb">id</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span> <span class="nb">id</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">AA_NAMES</span><span class="p">))}</span>
+    
+    <span class="n">_nameModes</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;long&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;medium&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;short&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>  <span class="c"># choices for name length</span>
+    <span class="n">_defaultNameMode</span> <span class="o">=</span> <span class="s">&quot;short&quot;</span>  <span class="c"># short name by default</span>
+
+<div class="viewcode-block" id="AminoAcid.__init__"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.aminoacid.AminoAcid.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aminoAcid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates an AminoAcid object representing one of the possible amino acids.</span>
+<span class="sd">        @param aminoAcid can be the name of an amino acid, or an AminoAcid object (in which case a copy is created).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># id of the amino acid within the name group</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aminoAcid</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aminoAcid</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getIdByName</span><span class="p">(</span><span class="n">aminoAcid</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>  <span class="c"># id from short aminoAcid name</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getIdByName</span><span class="p">(</span><span class="n">aminoAcid</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>  <span class="c"># id from other aminoAcid name</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aminoAcid</span><span class="p">,</span> <span class="n">AminoAcid</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">aminoAcid</span><span class="o">.</span><span class="n">_id</span>  <span class="c"># copy of id</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;aminoAcid must be a string or an AminoAcid object&quot;</span><span class="p">)</span>
+</div>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__getIdByName</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">AminoAcid</span><span class="o">.</span><span class="n">_nameDict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>  <span class="c"># get index of name mode</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Could not find amino acid name {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__getNameModeIndex</span><span class="p">(</span><span class="n">nameMode</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">AminoAcid</span><span class="o">.</span><span class="n">_nameModes</span><span class="p">[</span><span class="n">nameMode</span><span class="p">]</span>  <span class="c"># get index of name mode</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;nameMode must be &#39;short&#39;, &#39;medium&#39; or &#39;long&#39;&quot;</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AminoAcid.getNames"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.aminoacid.AminoAcid.getNames">[docs]</a>    <span class="k">def</span> <span class="nf">getNames</span><span class="p">(</span><span class="n">nameMode</span><span class="o">=</span><span class="n">_defaultNameMode</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Yields the names of the 20 basic amino acids.&quot;&quot;&quot;</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">AA_NAMES_CLASSIC_RANGE</span>
+        <span class="k">yield from</span> <span class="n">AminoAcid</span><span class="o">.</span><span class="n">getNamesInRange</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">nameMode</span><span class="p">)</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AminoAcid.getAllNames"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.aminoacid.AminoAcid.getAllNames">[docs]</a>    <span class="k">def</span> <span class="nf">getAllNames</span><span class="p">(</span><span class="n">nameMode</span><span class="o">=</span><span class="n">_defaultNameMode</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Yields the names of all represented amino acids, excepting gaps and termination codons.&quot;&quot;&quot;</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">AA_NAMES_EXTENDED_RANGE</span>
+        <span class="k">yield from</span> <span class="n">AminoAcid</span><span class="o">.</span><span class="n">getNamesInRange</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">nameMode</span><span class="p">)</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AminoAcid.getNamesInRange"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.aminoacid.AminoAcid.getNamesInRange">[docs]</a>    <span class="k">def</span> <span class="nf">getNamesInRange</span><span class="p">(</span><span class="n">startIndex</span><span class="p">,</span> <span class="n">stopIndex</span><span class="p">,</span> <span class="n">nameMode</span><span class="o">=</span><span class="n">_defaultNameMode</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Yields the names of amino acids in AA_NAMES, from startIndex to stopIndex (excluded).&quot;&quot;&quot;</span>
+        <span class="n">nameModeIndex</span> <span class="o">=</span> <span class="n">AminoAcid</span><span class="o">.</span><span class="n">__getNameModeIndex</span><span class="p">(</span><span class="n">nameMode</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">aa</span> <span class="ow">in</span> <span class="n">AA_NAMES</span><span class="p">[</span><span class="n">startIndex</span><span class="p">:</span><span class="n">stopIndex</span><span class="p">]:</span>
+            <span class="k">yield</span> <span class="n">aa</span><span class="p">[</span><span class="n">nameModeIndex</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="AminoAcid.isGap"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.aminoacid.AminoAcid.isGap">[docs]</a>    <span class="k">def</span> <span class="nf">isGap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if this amino acid is a gap, false otherwise.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">==</span> <span class="n">AA_NAMES_GAP_INDEX</span>
+</div>
+<div class="viewcode-block" id="AminoAcid.isTermination"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.aminoacid.AminoAcid.isTermination">[docs]</a>    <span class="k">def</span> <span class="nf">isTermination</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;True if this amino acid is a termination codon, false otherwise.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">==</span> <span class="n">AA_NAMES_TERM_INDEX</span>
+</div>
+<div class="viewcode-block" id="AminoAcid.getName"><a class="viewcode-back" href="../../../pyprot.base.html#pyprot.base.aminoacid.AminoAcid.getName">[docs]</a>    <span class="k">def</span> <span class="nf">getName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nameMode</span><span class="o">=</span><span class="n">_defaultNameMode</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">nameIndex</span> <span class="o">=</span> <span class="n">AminoAcid</span><span class="o">.</span><span class="n">_nameModes</span><span class="p">[</span><span class="n">nameMode</span><span class="p">]</span>  <span class="c"># get index of name mode</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;nameMode must be &#39;short&#39;, &#39;medium&#39; or &#39;long&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">AA_NAMES</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">][</span><span class="n">nameIndex</span><span class="p">]</span>
+</div>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Equivalent to getName()&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Equivalent to getName().&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span>  <span class="c"># default name mode</span>
+
+    <span class="c"># Comparison and hashing allow to manipulate and sort instances more efficiently</span>
+    <span class="c"># these functions do not have any biological meaning and their results may change over time.</span>
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_id</span>
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_id</span>
+
+    <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">_id</span>
+
+    <span class="k">def</span> <span class="nf">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">&gt;=</span> <span class="n">other</span><span class="o">.</span><span class="n">_id</span>
+
+    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">_id</span>
+
+    <span class="k">def</span> <span class="nf">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">&lt;=</span> <span class="n">other</span><span class="o">.</span><span class="n">_id</span>
+
+    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Stanislas Gueniffey.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

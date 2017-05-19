@@ -1,0 +1,326 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyprot.align package &mdash; pyprot alpha documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     'alpha',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyprot alpha documentation" href="index.html" />
+    <link rel="up" title="pyprot package" href="pyprot.html" />
+    <link rel="next" title="pyprot.base package" href="pyprot.base.html" />
+    <link rel="prev" title="pyprot package" href="pyprot.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyprot.base.html" title="pyprot.base package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pyprot.html" title="pyprot package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="pyprot.html" accesskey="U">pyprot package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pyprot-align-package">
+<h1>pyprot.align package<a class="headerlink" href="#pyprot-align-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pyprot.align.align">
+<span id="pyprot-align-align-module"></span><h2>pyprot.align.align module<a class="headerlink" href="#module-pyprot.align.align" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyprot.align.align.Align">
+<em class="property">class </em><tt class="descname">Align</tt><big>(</big><em>scoreMatrix</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/align.html#Align"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.align.Align" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.object</span></tt></p>
+<p>Represents an alignment matrix, used to determine the alignment score between two Sequences</p>
+<dl class="method">
+<dt id="pyprot.align.align.Align.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>scoreMatrix</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/align.html#Align.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.align.Align.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an AlignMatrix object that uses scoreMatrix as a scoring system between amino acids.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyprot.align.align.Align.globalAlign">
+<tt class="descname">globalAlign</tt><big>(</big><em>seqA</em>, <em>seqB</em>, <em>iniGapPenalty=1</em>, <em>extGapPenalty=None</em>, <em>semiGlobal=False</em>, <em>resultCount=-1</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/align.html#Align.globalAlign"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.align.Align.globalAlign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all best global alignment between &#8216;seqA&#8217; and &#8216;seqB&#8217; with the provided
+initial and extended gap penalties.
+If &#8216;semiGlobal&#8217; is True, allows alignment to discard the start and end of either Sequence.
+(this allows for better alignments when Sequences overlap only partially)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyprot.align.align.Align.localAlign">
+<tt class="descname">localAlign</tt><big>(</big><em>seqA</em>, <em>seqB</em>, <em>iniGapPenalty=1</em>, <em>extGapPenalty=None</em>, <em>resultCount=1</em>, <em>subOptimalDepth=0</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/align.html#Align.localAlign"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.align.Align.localAlign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns n best local alignment between &#8216;seqA&#8217; and &#8216;seqB&#8217; with the provided
+initial and extended gap penalties, where n equals &#8216;resultCount&#8217; (-1 for all).
+If &#8216;subOptimalDepth&#8217; equals m, looks for m best suboptimal alignments as well.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyprot.align.align.Align.multiAlign">
+<tt class="descname">multiAlign</tt><big>(</big><em>Sequence</em>, <em>resultCount=1</em>, <em>subOptimalDepth=3</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/align.html#Align.multiAlign"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.align.Align.multiAlign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns n best local M.S.A. of &#8216;Sequence&#8217; against the ScoreMatrix (which must be 
+position-specific and provide gap penalties) where n equals &#8216;resultCount&#8217; (-1 for all).
+If &#8216;subOptimalDepth&#8217; equals m, looks for m best suboptimal alignments as well.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyprot.align.align.Aligned">
+<em class="property">class </em><tt class="descname">Aligned</tt><big>(</big><em>seqA</em>, <em>seqB</em>, <em>seqAStart</em>, <em>seqBStart</em>, <em>alignType</em>, <em>alignScore</em>, <em>scoreMatrix</em>, <em>isMultiple=False</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/align.html#Aligned"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.align.Aligned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.object</span></tt></p>
+<p>Represents two aligned Sequences with some metadata about the alignment.
+Alignments can be two-sequences alignments or multiple sequence alignments.</p>
+<dl class="method">
+<dt id="pyprot.align.align.Aligned.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>seqA</em>, <em>seqB</em>, <em>seqAStart</em>, <em>seqBStart</em>, <em>alignType</em>, <em>alignScore</em>, <em>scoreMatrix</em>, <em>isMultiple=False</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/align.html#Aligned.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.align.Aligned.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyprot.align.align.Aligned.getBottomSequence">
+<tt class="descname">getBottomSequence</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyprot/align/align.html#Aligned.getBottomSequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.align.Aligned.getBottomSequence" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyprot.align.blosum">
+<span id="pyprot-align-blosum-module"></span><h2>pyprot.align.blosum module<a class="headerlink" href="#module-pyprot.align.blosum" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pyprot.align.blosum.belongs">
+<tt class="descname">belongs</tt><big>(</big><em>outSequence</em>, <em>group</em>, <em>minMatches</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/blosum.html#belongs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.blosum.belongs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if there&#8217;s at least &#8216;minMatches&#8217; matches between outSequence and any sequence 
+from &#8216;group&#8217;; False otherwise.
+Size of all sequences is assumed to be equal.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyprot.align.blosum.blosumFromFasta">
+<tt class="descname">blosumFromFasta</tt><big>(</big><em>requiredIdentityPercent</em>, <em>*filepaths</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/blosum.html#blosumFromFasta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.blosum.blosumFromFasta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates and returns a ScoreMatrix for all sequences in the provided &#8216;filepaths&#8217;,
+using the BLOSUM approach with an identity of at least &#8216;requiredIdentityPercent&#8217;.
+Each file is grouped independently and only then their weighted probabilities are merged.
+:param requiredIdentityPercent: 
+:param filepaths:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyprot.align.blosum.blosumFromProbabilities">
+<tt class="descname">blosumFromProbabilities</tt><big>(</big><em>probPairs</em>, <em>probSingle</em>, <em>requiredIdentityPercent</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/blosum.html#blosumFromProbabilities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.blosum.blosumFromProbabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fills and returns a Score according to the BLOSUM algorithm, from the probabilities
+of AA pairs and singletons provided in &#8216;probPairs&#8217; and &#8216;probSingle&#8217;.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyprot.align.blosum.getFrequencies">
+<tt class="descname">getFrequencies</tt><big>(</big><em>groupValues</em>, <em>groupSizes</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/blosum.html#getFrequencies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.blosum.getFrequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluates the frequencies of AminoAcids within columns of groups in &#8216;groupValues&#8217;.
+Frequencies are weighted according to group sizes in &#8216;groupSizes&#8217;.
+Returns two dictionaries and a number:
+-&#8216;freqPairs&#8217; maps pairs of AminoAcids to their frequencies
+-&#8216;freqSingle&#8217; maps single AminoAcids to their frequencies
+-&#8216;freqSum&#8217; is the sum of all frequencies</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyprot.align.blosum.makeGroupsFromFasta">
+<tt class="descname">makeGroupsFromFasta</tt><big>(</big><em>path</em>, <em>requiredIdentityPercent</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/blosum.html#makeGroupsFromFasta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.blosum.makeGroupsFromFasta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads Sequences from file at &#8216;path&#8217; and separate them in groups with an identity of 
+at least &#8216;requiredIdentityPercent&#8217;.
+Returns a list representing the groups as lists of Protein objects.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyprot.align.blosum.sumFrequenciesToProb">
+<tt class="descname">sumFrequenciesToProb</tt><big>(</big><em>freqPairsList</em>, <em>freqSingleList</em>, <em>freqSumList</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/blosum.html#sumFrequenciesToProb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.blosum.sumFrequenciesToProb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sums all frequencies in provided lists, and transforms them to probabilities according
+to the sum of frequencies found in &#8216;freqSumList&#8217;.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyprot.align.blosum.valueDictsFromGroups">
+<tt class="descname">valueDictsFromGroups</tt><big>(</big><em>groups</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/blosum.html#valueDictsFromGroups"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.blosum.valueDictsFromGroups" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transforms each group from &#8216;groups&#8217; into a list of dictionaries, one for each Protein column.
+The dictionaries map each AminoAcid found in that column to their count.
+Returns the list of dictionaries and a list of the size (in Sequences) of their groups.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyprot.align.score">
+<span id="pyprot-align-score-module"></span><h2>pyprot.align.score module<a class="headerlink" href="#module-pyprot.align.score" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyprot.align.score.PSSM">
+<em class="property">class </em><tt class="descname">PSSM</tt><big>(</big><em>description=''</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/score.html#PSSM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.score.PSSM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.object</span></tt></p>
+<p>Position Specific Score Matrix.
+Creates a profile for a series of aligned Sequences, and gives a score to each AA subsitution in a given column.</p>
+<dl class="method">
+<dt id="pyprot.align.score.PSSM.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>description=''</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/score.html#PSSM.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.score.PSSM.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyprot.align.score.PSSM.add">
+<tt class="descname">add</tt><big>(</big><em>Sequence</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/score.html#PSSM.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.score.PSSM.add" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyprot.align.score.PSSM.getDescription">
+<tt class="descname">getDescription</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pyprot/align/score.html#PSSM.getDescription"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.score.PSSM.getDescription" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyprot.align.score.PSSM.getGapPenalty">
+<tt class="descname">getGapPenalty</tt><big>(</big><em>columnIndex</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/score.html#PSSM.getGapPenalty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.score.PSSM.getGapPenalty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyprot.align.score.PSSM.getScore">
+<tt class="descname">getScore</tt><big>(</big><em>aminoAcid</em>, <em>columnIndex</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/score.html#PSSM.getScore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.score.PSSM.getScore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyprot.align.score.PSSM.setGapPenalty">
+<tt class="descname">setGapPenalty</tt><big>(</big><em>penalty</em>, <em>columnIndex=None</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/score.html#PSSM.setGapPenalty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.score.PSSM.setGapPenalty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyprot.align.score.ScoreMatrix">
+<em class="property">class </em><tt class="descname">ScoreMatrix</tt><big>(</big><em>path=''</em>, <em>description=''</em>, <em>ignore=None</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/score.html#ScoreMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.score.ScoreMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.object</span></tt></p>
+<p>Represents a scoring matrix, used to determine the score between two Amino Acids</p>
+<dl class="method">
+<dt id="pyprot.align.score.ScoreMatrix.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>path=''</em>, <em>description=''</em>, <em>ignore=None</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/score.html#ScoreMatrix.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.score.ScoreMatrix.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a Score object.
+If &#8216;path&#8217; is provided, loads the Score values from an iij file.
+Otherwise, creates a Score for all possible AminoAcids with values 0.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyprot.align.score.ScoreMatrix.getScore">
+<tt class="descname">getScore</tt><big>(</big><em>aa1</em>, <em>aa2</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/score.html#ScoreMatrix.getScore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.score.ScoreMatrix.getScore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the score assigned to AminoAcids &#8216;aa1&#8217;, &#8216;aa2&#8217;.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyprot.align.score.ScoreMatrix.setScore">
+<tt class="descname">setScore</tt><big>(</big><em>aa1</em>, <em>aa2</em>, <em>score</em><big>)</big><a class="reference internal" href="_modules/pyprot/align/score.html#ScoreMatrix.setScore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyprot.align.score.ScoreMatrix.setScore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the score assigned to AminoAcids &#8216;aa1&#8217;, &#8216;aa2&#8217;.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyprot.align">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyprot.align" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">pyprot.align package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-pyprot.align.align">pyprot.align.align module</a></li>
+<li><a class="reference internal" href="#module-pyprot.align.blosum">pyprot.align.blosum module</a></li>
+<li><a class="reference internal" href="#module-pyprot.align.score">pyprot.align.score module</a></li>
+<li><a class="reference internal" href="#module-pyprot.align">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pyprot.html"
+                        title="previous chapter">pyprot package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pyprot.base.html"
+                        title="next chapter">pyprot.base package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pyprot.align.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyprot.base.html" title="pyprot.base package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pyprot.html" title="pyprot package"
+             >previous</a> |</li>
+        <li><a href="index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="pyprot.html" >pyprot package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Stanislas Gueniffey.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

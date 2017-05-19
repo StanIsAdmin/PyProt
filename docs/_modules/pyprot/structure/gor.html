@@ -1,0 +1,277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyprot.structure.gor &mdash; pyprot alpha documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     'alpha',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="pyprot alpha documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyprot.structure.gor</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">log</span><span class="p">,</span> <span class="n">sqrt</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">pyplot</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">pyprot.base.aminoacid</span> <span class="kn">import</span> <span class="n">AminoAcid</span>
+
+
+<div class="viewcode-block" id="GOR3"><a class="viewcode-back" href="../../../pyprot.structure.html#pyprot.structure.gor.GOR3">[docs]</a><span class="k">class</span> <span class="nc">GOR3</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implements the GOR III secondary structure prediction algorithm.</span>
+<span class="sd">    Objects of this class must be trained with known examples of sequences and their structure</span>
+<span class="sd">    before being able to predict the structures of new sequences.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="GOR3.__init__"><a class="viewcode-back" href="../../../pyprot.structure.html#pyprot.structure.gor.GOR3.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structures</span> <span class="o">=</span> <span class="s">&quot;HETC&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">roc</span> <span class="o">=</span> <span class="p">{(</span><span class="n">s</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&quot;TP&quot;</span><span class="p">,</span> <span class="s">&quot;TN&quot;</span><span class="p">,</span> <span class="s">&quot;FP&quot;</span><span class="p">,</span> <span class="s">&quot;FN&quot;</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">minScore</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxScore</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scores</span> <span class="o">=</span> <span class="p">{(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">realS</span><span class="p">):</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">classifier</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span> <span class="k">for</span> <span class="n">realS</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">correctPred</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">totalPred</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neighbourOffset</span> <span class="o">=</span> <span class="mi">8</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">trainings</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># Number of trainings (one per AA)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strucCount</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pairCount</span> <span class="o">=</span> <span class="p">{(</span><span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">AminoAcid</span><span class="o">.</span><span class="n">getAllNames</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tripletCount</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">AminoAcid</span><span class="o">.</span><span class="n">getAllNames</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">na</span> <span class="ow">in</span> <span class="n">AminoAcid</span><span class="o">.</span><span class="n">getAllNames</span><span class="p">():</span>  <span class="c"># Neighbour AA</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tripletCount</span><span class="p">[(</span><span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">na</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+</div>
+<div class="viewcode-block" id="GOR3.train"><a class="viewcode-back" href="../../../pyprot.structure.html#pyprot.structure.gor.GOR3.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Trains the system with a known example of a sequence and its structure.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trainings</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sequence</span><span class="p">)):</span>
+            <span class="n">curAminoacid</span> <span class="o">=</span> <span class="n">sequence</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">curStructure</span> <span class="o">=</span> <span class="n">structure</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">strucCount</span><span class="p">[</span><span class="n">curStructure</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pairCount</span><span class="p">[(</span><span class="n">curStructure</span><span class="p">,</span> <span class="n">curAminoacid</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">for</span> <span class="n">neiAminoacid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighbourValues</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tripletCount</span><span class="p">[(</span><span class="n">curStructure</span><span class="p">,</span> <span class="n">curAminoacid</span><span class="p">,</span> <span class="n">neiAminoacid</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+</div>
+<div class="viewcode-block" id="GOR3.predict"><a class="viewcode-back" href="../../../pyprot.structure.html#pyprot.structure.gor.GOR3.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">realStructure</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the predicted structure of &#39;sequence&#39;, based on received training.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">structure</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># Result: predicted structure</span>
+
+        <span class="c"># Predict structures for each aminoacid in sequence</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sequence</span><span class="p">)):</span>
+            <span class="n">curAminoacid</span> <span class="o">=</span> <span class="n">sequence</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+            <span class="c"># First possible structure</span>
+            <span class="n">predStructure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">predScore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getScore</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">predStructure</span><span class="p">)</span>
+
+            <span class="c"># Other structures</span>
+            <span class="k">for</span> <span class="n">curStructure</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="n">curScore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getScore</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">curStructure</span><span class="p">)</span>
+
+                <span class="c"># Remember structure that gives best score</span>
+                <span class="k">if</span> <span class="n">curScore</span> <span class="o">&gt;</span> <span class="n">predScore</span><span class="p">:</span>
+                    <span class="n">predStructure</span> <span class="o">=</span> <span class="n">curStructure</span>
+                    <span class="n">predScore</span> <span class="o">=</span> <span class="n">curScore</span>
+
+            <span class="n">structure</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">predStructure</span><span class="p">)</span>
+        <span class="n">structure</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">realStructure</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__quality</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">realStructure</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">structure</span>
+</div>
+    <span class="k">def</span> <span class="nf">__getScore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">struct</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns I(deltaS, R) as defined by the GOR III algorithm.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">aminoacid</span> <span class="o">=</span> <span class="n">sequence</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">scoreTerms</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pairCount</span><span class="p">[(</span><span class="n">struct</span><span class="p">,</span> <span class="n">aminoacid</span><span class="p">)]</span>
+        <span class="n">score</span> <span class="o">/=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pairCount</span><span class="p">[(</span><span class="n">otherStruct</span><span class="p">,</span> <span class="n">aminoacid</span><span class="p">)]</span> <span class="k">for</span> <span class="n">otherStruct</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStructures</span><span class="p">(</span><span class="n">struct</span><span class="p">))</span>
+        <span class="n">scoreTerms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+
+        <span class="n">score</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trainings</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">strucCount</span><span class="p">[</span><span class="n">struct</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">strucCount</span><span class="p">[</span><span class="n">struct</span><span class="p">]</span>
+        <span class="n">scoreTerms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">neiAminoacid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighbourValues</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tripletCount</span><span class="p">[(</span><span class="n">struct</span><span class="p">,</span> <span class="n">aminoacid</span><span class="p">,</span> <span class="n">neiAminoacid</span><span class="p">)]</span>
+            <span class="n">score</span> <span class="o">/=</span> <span class="nb">sum</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tripletCount</span><span class="p">[(</span><span class="n">otherStruct</span><span class="p">,</span> <span class="n">aminoacid</span><span class="p">,</span> <span class="n">neiAminoacid</span><span class="p">)]</span> <span class="k">for</span> <span class="n">otherStruct</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStructures</span><span class="p">(</span><span class="n">struct</span><span class="p">))</span>
+            <span class="n">scoreTerms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+
+            <span class="n">score</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pairCount</span><span class="p">[(</span><span class="n">otherStruct</span><span class="p">,</span> <span class="n">aminoacid</span><span class="p">)]</span> <span class="k">for</span> <span class="n">otherStruct</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStructures</span><span class="p">(</span><span class="n">struct</span><span class="p">))</span>
+            <span class="n">score</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pairCount</span><span class="p">[(</span><span class="n">struct</span><span class="p">,</span> <span class="n">aminoacid</span><span class="p">)]</span>
+            <span class="n">scoreTerms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">log</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scoreTerms</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GOR3.neighbourOffsets"><a class="viewcode-back" href="../../../pyprot.structure.html#pyprot.structure.gor.GOR3.neighbourOffsets">[docs]</a>    <span class="k">def</span> <span class="nf">neighbourOffsets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">neighbourOffset</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighbourOffset</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">offset</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">offset</span>
+</div>
+<div class="viewcode-block" id="GOR3.neighbourValues"><a class="viewcode-back" href="../../../pyprot.structure.html#pyprot.structure.gor.GOR3.neighbourValues">[docs]</a>    <span class="k">def</span> <span class="nf">neighbourValues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighbourOffsets</span><span class="p">():</span>
+            <span class="n">neiIndex</span> <span class="o">=</span> <span class="n">index</span> <span class="o">+</span> <span class="n">offset</span>
+            <span class="k">if</span> <span class="n">neiIndex</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">neiIndex</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">sequence</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">sequence</span><span class="p">[</span><span class="n">neiIndex</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="GOR3.getStructures"><a class="viewcode-back" href="../../../pyprot.structure.html#pyprot.structure.gor.GOR3.getStructures">[docs]</a>    <span class="k">def</span> <span class="nf">getStructures</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s</span> <span class="o">!=</span> <span class="n">exclude</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">s</span>
+</div>
+    <span class="k">def</span> <span class="nf">__quality</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">reality</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">totalPred</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>  <span class="c"># Total predictions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">correctPred</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="mi">1</span> <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="n">r</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">reality</span><span class="p">)])</span>  <span class="c"># Correct predictions</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sequence</span><span class="p">)):</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__getScore</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">classifier</span><span class="p">)</span> <span class="k">for</span> <span class="n">classifier</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">]</span>
+            <span class="n">maxScore</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">classifier</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">,</span> <span class="n">scores</span><span class="p">):</span>
+                <span class="n">realS</span> <span class="o">=</span> <span class="n">reality</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scores</span><span class="p">[(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">realS</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">minScore</span> <span class="o">=</span> <span class="n">score</span> <span class="k">if</span> <span class="n">score</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">minScore</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">minScore</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">maxScore</span> <span class="o">=</span> <span class="n">score</span> <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxScore</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxScore</span>
+                <span class="k">if</span> <span class="n">score</span> <span class="o">==</span> <span class="n">maxScore</span><span class="p">:</span>  <span class="c"># Positive</span>
+                    <span class="k">if</span> <span class="n">classifier</span> <span class="o">==</span> <span class="n">realS</span><span class="p">:</span>  <span class="c"># True</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">roc</span><span class="p">[(</span><span class="n">classifier</span><span class="p">,</span> <span class="s">&quot;TP&quot;</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>  <span class="c"># False</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">roc</span><span class="p">[(</span><span class="n">classifier</span><span class="p">,</span> <span class="s">&quot;FP&quot;</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c"># Negative</span>
+                    <span class="k">if</span> <span class="n">classifier</span> <span class="o">!=</span> <span class="n">realS</span><span class="p">:</span>  <span class="c"># True</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">roc</span><span class="p">[(</span><span class="n">classifier</span><span class="p">,</span> <span class="s">&quot;TN&quot;</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>  <span class="c"># False</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">roc</span><span class="p">[(</span><span class="n">classifier</span><span class="p">,</span> <span class="s">&quot;FN&quot;</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="GOR3.getQuality"><a class="viewcode-back" href="../../../pyprot.structure.html#pyprot.structure.gor.GOR3.getQuality">[docs]</a>    <span class="k">def</span> <span class="nf">getQuality</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tp</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">roc</span><span class="p">[(</span><span class="n">c</span><span class="p">,</span> <span class="s">&quot;TP&quot;</span><span class="p">)]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">])</span>
+        <span class="n">tn</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">roc</span><span class="p">[(</span><span class="n">c</span><span class="p">,</span> <span class="s">&quot;TN&quot;</span><span class="p">)]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">])</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">roc</span><span class="p">[(</span><span class="n">c</span><span class="p">,</span> <span class="s">&quot;FP&quot;</span><span class="p">)]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">])</span>
+        <span class="n">fn</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">roc</span><span class="p">[(</span><span class="n">c</span><span class="p">,</span> <span class="s">&quot;FN&quot;</span><span class="p">)]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">])</span>
+        <span class="n">mcc</span> <span class="o">=</span> <span class="p">(</span><span class="n">tp</span> <span class="o">*</span> <span class="n">tn</span> <span class="o">-</span> <span class="n">fp</span> <span class="o">*</span> <span class="n">fn</span><span class="p">)</span> <span class="o">/</span> <span class="n">sqrt</span><span class="p">((</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fn</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">tn</span> <span class="o">+</span> <span class="n">fp</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">tn</span> <span class="o">+</span> <span class="n">fn</span><span class="p">))</span>
+        <span class="n">q3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">correctPred</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">totalPred</span>
+        <span class="k">return</span> <span class="n">q3</span><span class="p">,</span> <span class="n">mcc</span>
+</div>
+<div class="viewcode-block" id="GOR3.plotROC"><a class="viewcode-back" href="../../../pyprot.structure.html#pyprot.structure.gor.GOR3.plotROC">[docs]</a>    <span class="k">def</span> <span class="nf">plotROC</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">classifier</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">threshold</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minScore</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxScore</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">):</span>
+                <span class="n">tp</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">realS</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">score</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scores</span><span class="p">[(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">realS</span><span class="p">)]:</span>
+                        <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">:</span>  <span class="c"># Positive</span>
+                            <span class="k">if</span> <span class="n">classifier</span> <span class="o">==</span> <span class="n">realS</span><span class="p">:</span>  <span class="c"># True</span>
+                                <span class="n">tp</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">else</span><span class="p">:</span>  <span class="c"># False</span>
+                                <span class="n">fp</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">else</span><span class="p">:</span>  <span class="c"># Negative</span>
+                            <span class="k">if</span> <span class="n">classifier</span> <span class="o">!=</span> <span class="n">realS</span><span class="p">:</span>  <span class="c"># True</span>
+                                <span class="n">tn</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="k">else</span><span class="p">:</span>  <span class="c"># False</span>
+                                <span class="n">fn</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">tpr</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fn</span><span class="p">)</span>
+                <span class="n">fpr</span> <span class="o">=</span> <span class="n">fp</span> <span class="o">/</span> <span class="p">(</span><span class="n">tn</span> <span class="o">+</span> <span class="n">fp</span><span class="p">)</span>
+                <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fpr</span><span class="p">)</span>
+                <span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tpr</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;----- Receiver Operating Characteristic Curve -----&quot;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;Classifier:&quot;</span><span class="p">,</span> <span class="n">classifier</span><span class="p">)</span>
+            <span class="n">x</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="n">y</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="n">auc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>  <span class="c"># Area Under Curve</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;AUC:&quot;</span><span class="p">,</span> <span class="n">auc</span><span class="p">)</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">&quot;Classifier &quot;</span> <span class="o">+</span> <span class="n">classifier</span><span class="p">)</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">&#39;False Positive Rate&#39;</span><span class="p">)</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">&#39;True Positive Rate&#39;</span><span class="p">)</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyprot alpha documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2017, Stanislas Gueniffey.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
