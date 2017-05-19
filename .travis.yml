@@ -1,7 +1,9 @@
 language: python
 python:
   - "3.3"
-script: nosetests
+install:
+  - pip install -r pyprot/requirements.txt
+script: nosetests --with-coverage --cover-package=pyprot
 branches:
   only:
     - master
