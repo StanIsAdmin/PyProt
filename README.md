@@ -37,5 +37,12 @@ You can install this package in the following ways:
 
 - Once the source code is downloaded and extracted, you can also copy-paste it to any directory in your Python `PATH`.
 
+## Documentation
+The code is documented in the standard `docstring` format, therefore documentation will appear automatically if you use an editor that supports that format.
+
+Working examples are provided in the `examples/` folder of the repository, with code and explanations embedded inside `jupyter notebook` files. In order to run these yourself, you'll need to install [Jupyter](http://jupyter.org/).
+
+
+
 ## Contribute
 Anyone is welcome to contribute by submitting a [pull request](https://help.github.com/articles/about-pull-requests/) or by opening [new issues](https://help.github.com/articles/about-issues/).
