@@ -23,7 +23,7 @@ Here is an overview of the sub-packages and the libraries they contain:
 ## Dependencies
 In order to use this package, you'll need a working version of [Python 3.3](https://www.python.org/download/releases/3.0/) or later installed.
 
-Installing the package with the following instructions will automatically install its dependencies, which are listed in the `requirements.txt` file.
+Installing the package with the following instructions will automatically install its dependencies, which are listed in the `setup-req.txt` file.
 
 ## Installation
 You can install this package in the following ways:
