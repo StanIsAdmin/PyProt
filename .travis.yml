@@ -4,6 +4,12 @@ python:
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y python-matplotlib
+jobs:
+  include:
+    - stage: test
+      script: nosetests
+    - stage: deploy
+      script: pip install git+https://github.com/StanIsAdmin/PyProt.git
 script: nosetests
 branches:
   only:
