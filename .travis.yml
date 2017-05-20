@@ -1,7 +1,10 @@
 language: python
 python:
   - "3.3"
-script: nosetests --with-coverage --cover-package=pyprot
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y python3-matplotlib
+script: nosetests
 branches:
   only:
     - master
