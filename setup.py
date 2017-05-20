@@ -18,7 +18,7 @@ setup(
     author='Stanislas Gueniffey',
     author_email='',
 
-    license='MIT',
+    license='GPL-3.0',
 
     classifiers=[
         'Development Status :: 3 - Alpha',
