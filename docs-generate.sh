@@ -7,7 +7,6 @@ mkdir -p docs
 ## Set up sphinx metadata in docs-sphinx folder
 #sphinx-apidoc -F -o docs-sphinx pyprot/
 
-
 # Copy configuration script (tracked by git) to docs-sphinx
 cp docs-config.py docs-sphinx/conf.py
 
