@@ -25,14 +25,19 @@ setup(
         'Development Status :: 3 - Alpha',
 
         'Intended Audience :: Developers',
-        'Intended Audience :: Biologists',
-        'Topic :: Biology :: Proteins',
+        'Intended Audience :: Education',
+        'Intended Audience :: Science/Research',
 
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        
+        'Natural Language :: English',
 
+        'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        
+        'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
 
     keywords='biology proteins sequence-alignment',
