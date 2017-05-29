@@ -8,15 +8,16 @@ with open('setup-req.txt', encoding='utf-8') as f:
 setup(
     name='pyprot',
 
-    version='0.1',
+    version='0.1-alpha',
 
     description='Python Proteins',
     long_description="A package designed to represent and maniupate amino acid sequences.",
 
     url='https://github.com/StanIsAdmin/PyProt',
+	download_url='https://github.com/StanIsAdmin/PyProt/archive/0.1-alpha.tar.gz',
 
     author='Stanislas Gueniffey',
-    author_email='',
+    author_email='gueniffeystanislas@gmail.com',
 
     license='GPL-3.0',
 
@@ -29,7 +30,6 @@ setup(
 
         'License :: OSI Approved :: MIT License',
 
-        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
