@@ -1,10 +1,11 @@
 language: python
 python:
-  - "3.3"
-before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y python-matplotlib
-script: nosetests
-branches:
-  only:
-    - master
+  - "3.4"
+jobs:
+  include:
+    - stage: test
+      script: nosetests
+    - stage: deploy-git
+      script: pip install git+https://github.com/StanIsAdmin/PyProt.git
+    - stage: deploy-local
+      script: pip install .

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from codecs import open
 
 all_requirements = []
-with open('setup-req.txt', encoding='utf-8') as f:
+with open('requirements.txt', encoding='utf-8') as f:
     all_requirements = f.read().splitlines()
 
 setup(
