@@ -1,10 +1,13 @@
 language: python
 python:
   - "3.4"
+install:
+  - pip install coveralls
 jobs:
   include:
     - stage: test
-      script: nosetests
+      script: nosetests --with-coverage
+      after_success: coveralls
     - stage: deploy-git
       script: pip install git+https://github.com/StanIsAdmin/PyProt.git
     - stage: deploy-local
