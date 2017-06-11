@@ -2,6 +2,9 @@
 
 [![Build Status](https://travis-ci.org/StanIsAdmin/PyProt.svg?branch=master)](https://travis-ci.org/StanIsAdmin/PyProt)
 [![Coverage Status](https://coveralls.io/repos/github/StanIsAdmin/PyProt/badge.svg?branch=master)](https://coveralls.io/github/StanIsAdmin/PyProt?branch=master)
+[![PyPi Package](https://img.shields.io/badge/pypi%20package-0.1--alpha-orange.svg)](https://pypi.python.org/pypi/pyprot)
+
+
 
 **PyProt** (short for _Python Proteins_) is a python package with libraries designed to represent and manipulate proteins.
 
