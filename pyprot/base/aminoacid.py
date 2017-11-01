@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 AA_NAMES = (
     ("alanine", "ala", "A"),
     ("cysteine", "cys", "C"),
@@ -49,7 +47,7 @@ class AminoAcid:
 
     # Dictionary mapping name to id
     _nameDict = {AA_NAMES[id][i]: id for i in range(3) for id in range(len(AA_NAMES))}
-    
+
     _nameModes = {"long": 0, "medium": 1, "short": 2}  # choices for name length
     _defaultNameMode = "short"  # short name by default
 
@@ -74,14 +72,14 @@ class AminoAcid:
     def __getIdByName(name):
         try:
             return AminoAcid._nameDict[name]  # get index of name mode
-        except:
+        except KeyError:
             raise ValueError("Could not find amino acid name {}".format(name))
 
     @staticmethod
     def __getNameModeIndex(nameMode):
         try:
             return AminoAcid._nameModes[nameMode]  # get index of name mode
-        except:
+        except KeyError:
             raise TypeError("nameMode must be 'short', 'medium' or 'long'")
 
     @staticmethod
@@ -114,7 +112,7 @@ class AminoAcid:
     def getName(self, nameMode=_defaultNameMode):
         try:
             nameIndex = AminoAcid._nameModes[nameMode]  # get index of name mode
-        except:
+        except KeyError:
             raise TypeError("nameMode must be 'short', 'medium' or 'long'")
 
         return AA_NAMES[self._id][nameIndex]
@@ -130,22 +128,34 @@ class AminoAcid:
     # Comparison and hashing allow to manipulate and sort instances more efficiently
     # these functions do not have any biological meaning and their results may change over time.
     def __eq__(self, other):
-        return self._id == other._id
+        if isinstance(other, self.__class__):
+            return self._id == other._id
+        return NotImplemented
 
     def __ne__(self, other):
-        return self._id != other._id
+        if isinstance(other, self.__class__):
+            return self._id != other._id
+        return NotImplemented
 
     def __gt__(self, other):
-        return self._id > other._id
+        if isinstance(other, self.__class__):
+            return self._id > other._id
+        return NotImplemented
 
     def __ge__(self, other):
-        return self._id >= other._id
+        if isinstance(other, self.__class__):
+            return self._id >= other._id
+        return NotImplemented
 
     def __lt__(self, other):
-        return self._id < other._id
+        if isinstance(other, self.__class__):
+            return self._id < other._id
+        return NotImplemented
 
     def __le__(self, other):
-        return self._id <= other._id
+        if isinstance(other, self.__class__):
+            return self._id >= other._id
+        return NotImplemented
 
     def __hash__(self):
         return hash(self._id)
