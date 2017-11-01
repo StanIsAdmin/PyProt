@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 from pyprot.base.aminoacid import AminoAcid
 
 
@@ -19,6 +17,7 @@ class Sequence(list):
         - a list containing AminoAcid objects and/or strings of individual AminoAcid names
         """
 
+        super().__init__()
         self._nameMode = "short"  # the way in which AA names are displayed
         self._separator = ""  # how to separate AA names when displayed
         self._description = description  # description of the sequence

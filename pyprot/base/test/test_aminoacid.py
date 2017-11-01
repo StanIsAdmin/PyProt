@@ -37,5 +37,6 @@ class TestAminoAcid(TestCase):
         aa2 = AminoAcid("A")
         self.assertEquals(hash(aa1), hash(aa2))
 
+
 if __name__ == "__main__":
     TestAminoAcid.main()

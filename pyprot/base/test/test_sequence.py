@@ -1,6 +1,7 @@
 from unittest import TestCase
-from pyprot.base.sequence import Sequence
+
 from pyprot.base.aminoacid import AminoAcid
+from pyprot.base.sequence import Sequence
 
 
 class TestSequence(TestCase):

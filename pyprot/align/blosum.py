@@ -1,8 +1,8 @@
 from math import log, ceil
 
+from pyprot.align.score import ScoreMatrix
 from pyprot.base.aminoacid import AminoAcid
 from pyprot.data.fasta import getSequencesFromFasta
-from pyprot.align.score import ScoreMatrix
 
 
 def belongs(outSequence, group, minMatches):

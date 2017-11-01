@@ -1,5 +1,3 @@
-
-
 class DSSP:
     def __init__(self, filePath):
 
