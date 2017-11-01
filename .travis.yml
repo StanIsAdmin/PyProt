@@ -6,7 +6,7 @@ install:
 jobs:
   include:
     - stage: test
-      script: nosetests --with-coverage
+      script: nosetests --with-coverage --cover-package=pyprot
       after_success: coveralls
     - stage: deploy-git
       script: pip install git+https://github.com/StanIsAdmin/PyProt.git
