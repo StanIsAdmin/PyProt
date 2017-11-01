@@ -44,7 +44,7 @@ class ScoreMatrix:
                 if AminoAcid(aa) not in self._ignore:
                     self._aaSequence.extend(aa)
                     self._aaOrder[self._aaSequence[-1]] = lineSize - 1
-                    self._matrix.append([0 for i in range(lineSize)])
+                    self._matrix.append([0 for _ in range(lineSize)])
                     lineSize += 1
 
     # Representation
@@ -131,24 +131,24 @@ class PSSM:
         self.aaCount = None
         self.gapPenalties = None
 
-    def add(self, Sequence):
+    def add(self, sequence):
         # check Sequence size
         if self.size is None:
-            self.size = len(Sequence)
-            self.aaDistribution = [{} for i in range(self.size)]
-            self.aaCount = [0 for i in range(self.size)]
-            self.gapPenalties = [0 for i in range(self.size + 1)]
+            self.size = len(sequence)
+            self.aaDistribution = [{} for _ in range(self.size)]
+            self.aaCount = [0 for _ in range(self.size)]
+            self.gapPenalties = [0 for _ in range(self.size + 1)]
 
-        assert (len(Sequence) == self.size)
+        assert (len(sequence) == self.size)
 
         # update amino acid count for each column
         for index in range(self.size):
-            if not Sequence[index].isGap():
+            if not sequence[index].isGap():
                 self.aaCount[index] += 1
                 try:
-                    self.aaDistribution[index][Sequence[index]] += 1
-                except:
-                    self.aaDistribution[index][Sequence[index]] = 1
+                    self.aaDistribution[index][sequence[index]] += 1
+                except KeyError:
+                    self.aaDistribution[index][sequence[index]] = 1
 
         # increase Sequence count
         self.seqCount += 1
@@ -165,13 +165,13 @@ class PSSM:
         # random probability of amino acid
         try:
             p_aa = uniprob[aminoAcid]
-        except:
+        except KeyError:
             p_aa = 0.001
 
         # evolutionary probability of amino acid
         try:
             f_aa = self.aaDistribution[columnIndex][aminoAcid] / self.seqCount
-        except:
+        except KeyError:
             f_aa = 0
 
         q_aa = (alpha * f_aa + beta * p_aa) / alphaplusbeta

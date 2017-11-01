@@ -54,8 +54,6 @@ class GOR3:
 
         # Predict structures for each aminoacid in sequence
         for index in range(len(sequence)):
-            curAminoacid = sequence[index]
-
             # First possible structure
             predStructure = self.structures[0]
             predScore = self.__getScore(sequence, index, predStructure)
@@ -72,7 +70,7 @@ class GOR3:
             structure.append(predStructure)
         structure = "".join(structure)
 
-        if not realStructure is None:
+        if realStructure is not None:
             self.__quality(sequence, structure, realStructure)
 
         return structure
@@ -111,7 +109,7 @@ class GOR3:
     def neighbourValues(self, sequence, index):
         for offset in self.neighbourOffsets():
             neiIndex = index + offset
-            if neiIndex >= 0 and neiIndex < len(sequence):
+            if 0 <= neiIndex < len(sequence):
                 yield sequence[neiIndex]
 
     def getStructures(self, exclude=None):

@@ -13,8 +13,8 @@ class Aligned:
         assert (len(seqA) == len(seqB))
 
         # seqA is always a Sequence, seqB can be a list of ints (if MSA)
-        self.seqA = seqA if isinstance(seqA, Sequence) else seqB
-        self.seqB = seqB if isinstance(seqA, Sequence) else seqA
+        self.seqA = seqA if isinstance(seqA, Sequence) else seqB  # type: Sequence
+        self.seqB = seqB if isinstance(seqA, Sequence) else seqA  # type: Sequence
         self.seqInter = []  # Sequence separators (.: )
 
         self.seqAStart = seqAStart if isinstance(seqA, Sequence) else seqBStart
@@ -81,9 +81,9 @@ class Aligned:
         res.append("Type       : " + self.alignType)
         res.append("Score      : " + str(self.alignScore))
         if not self.isMultiple:
-            res.append("Identity   : " + str(self.identity) \
+            res.append("Identity   : " + str(self.identity)
                        + " ({0:.2f}%)".format(100 * (self.identity / len(self.seqA))))
-            res.append("Similarity : " + str(self.similarity) \
+            res.append("Similarity : " + str(self.similarity)
                        + " ({0:.2f}%)".format(100 * (self.similarity / len(self.seqA))))
         res.append("Gaps       : " + (str(self.gaps) if self.gaps > 0 else "None"))
         res.append("")
@@ -243,7 +243,7 @@ class Align:
             for row, col in zip(self._maxScoreRows, self._maxScoreCols):
                 yield from self.__align(row, col)
 
-    def multiAlign(self, Sequence, resultCount=1, subOptimalDepth=3):
+    def multiAlign(self, sequence, resultCount=1, subOptimalDepth=3):
         """
         Returns n best local M.S.A. of 'Sequence' against the ScoreMatrix (which must be 
         position-specific and provide gap penalties) where n equals 'resultCount' (-1 for all).
@@ -251,7 +251,7 @@ class Align:
         """
         self._isMultiple = True
         colSeq = [i for i in range(len(self._scoreMatrix))]
-        yield from self.localAlign(colSeq, Sequence, 0, None, resultCount, subOptimalDepth)
+        yield from self.localAlign(colSeq, sequence, 0, None, resultCount, subOptimalDepth)
 
     def __initialize(self, seqA, seqB, iniGapPenalty, extGapPenalty):
         """
@@ -286,13 +286,13 @@ class Align:
         self._extGapPenalty = iniGapPenalty if extGapPenalty is None else extGapPenalty
 
         # Matrices
-        self._alignMatrix = [[0 for i in range(len(self._colSeq) + 1)] \
-                             for j in range(len(self._rowSeq) + 1)]
+        self._alignMatrix = [[0 for _ in range(len(self._colSeq) + 1)]
+                             for _ in range(len(self._rowSeq) + 1)]
         self._rowGapMatrix = deepcopy(self._alignMatrix)
         self._colGapMatrix = deepcopy(self._alignMatrix)
 
-        self._originMatrix = [["" for i in range(len(self._colSeq) + 1)] \
-                              for j in range(len(self._rowSeq) + 1)]
+        self._originMatrix = [["" for _ in range(len(self._colSeq) + 1)]
+                              for _ in range(len(self._rowSeq) + 1)]
 
         # Global alignment : first line and colunm have initial scores and origins
         if self._alignMode == "global":
@@ -347,7 +347,6 @@ class Align:
         matchScore = self._alignMatrix[row - 1][col - 1] + \
                      self._scoreMatrix.getScore(self._rowSeq[row - 1], self._colSeq[col - 1])
 
-        maxScore = 0
         if self._alignMode == "local":  # Local alignment
             self._alignMatrix[row][col] = maxScore = max(insertScore, deleteScore, matchScore, 0)
         else:  # Global alignment
@@ -429,7 +428,7 @@ class Align:
                                  alignDescription, self._currentAlignScore, self._scoreMatrix, False)
 
             # Remember first best alignment for subobtimal lookup
-            if self._bestAlignPath == []:
+            if not self._bestAlignPath:
                 self._bestAlignPath = deepcopy(self._currentAlignPath)
 
             self._resultCount -= 1

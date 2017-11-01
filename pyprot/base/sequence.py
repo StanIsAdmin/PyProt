@@ -71,7 +71,7 @@ class Sequence(list):
         """Sets the base's description"""
         self._description = description
 
-    def getDescription(self):
+    def getDescription(self) -> str:
         """Returns the base's description."""
         return self._description
 

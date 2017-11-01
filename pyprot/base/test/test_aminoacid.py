@@ -6,7 +6,7 @@ from pyprot.base.aminoacid import AminoAcid
 class TestAminoAcid(TestCase):
     def canCreateAminoAcid(self, name):
         try:
-            aa = AminoAcid(name)
+            _ = AminoAcid(name)
         except ValueError:
             self.fail()
 
@@ -39,4 +39,5 @@ class TestAminoAcid(TestCase):
 
 
 if __name__ == "__main__":
+    # noinspection PyUnresolvedReferences
     TestAminoAcid.main()

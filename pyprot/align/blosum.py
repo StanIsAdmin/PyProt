@@ -62,7 +62,6 @@ def valueDictsFromGroups(groups):
     Returns the list of dictionaries and a list of the size (in Sequences) of their groups.
     """
     seqSize = len(groups[0][0])
-    groupCount = len(groups)
 
     groupValues = []
     groupSizes = []
@@ -77,7 +76,7 @@ def valueDictsFromGroups(groups):
             for seq in group:  # For each sequence in group
                 try:
                     groupCol[seq[col]] += 1  # Increment count
-                except:
+                except KeyError:
                     groupCol[seq[col]] = 1
 
             groupAAs.append(groupCol)
@@ -129,7 +128,7 @@ def getFrequencies(groupValues, groupSizes):
                         pairIndex = (aaA, aaB) if aaA > aaB else (aaB, aaA)
                         try:
                             freqPairs[pairIndex] += aaPairFreq
-                        except:
+                        except KeyError:
                             freqPairs[pairIndex] = aaPairFreq
 
     return freqPairs, freqSingle, freqSum
@@ -148,13 +147,13 @@ def sumFrequenciesToProb(freqPairsList, freqSingleList, freqSumList):
             # Sum all frequencies for matching AA pairs, divided by fSum
             try:
                 probPairs[key] += value / fSum
-            except:
+            except KeyError:
                 probPairs[key] = value / fSum
         for key, value in freqSingle.items():
             # Sum all frequencies for matching AAs, divided by fSum
             try:
                 probSingle[key] += value / fSum
-            except:
+            except KeyError:
                 probSingle[key] = value / fSum
 
     return probPairs, probSingle
